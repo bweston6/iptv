@@ -1,0 +1,10 @@
+{
+  "id": "uk.bweston.iptv",
+  "version": "0.0.1",
+  "vendor": "Ben Weston",
+  "type": "web",
+  "main": "index.html",
+  "title": "IPTV",
+  "icon": "icon.png",
+  "largeIcon": "icon.png"
+}

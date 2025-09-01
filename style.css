@@ -1,0 +1,70 @@
+:root {
+  --clr-neutral-0: hsl(0 0% 0%);
+  --clr-neutral-3: hsl(0 0% 30%);
+  --clr-neutral-5: hsl(0 0% 50%);
+  --clr-neutral-9: hsl(0 0% 100%);
+
+  --clr-neutral-0t: hsl(0 0% 0% / 90%);
+  --clr-neutral-3t: hsl(0 0% 30% / 90%);
+  --clr-neutral-5t: hsl(0 0% 50% / 90%);
+  --clr-neutral-9t: hsl(0 0% 100% / 90%);
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: auto;
+}
+
+body {
+  background-color: var(--clr-neutral-9);
+  color: var(--clr-neutral-0);
+  font-family: system-ui sans-serif;
+  height: 100%;
+  margin: 0;
+  overflow: auto;
+  padding: 1rem;
+}
+
+#stream {
+  align-items: center;
+  background-color: var(--clr-neutral-0);
+  display: grid;
+  inset: 0 0;
+  position: absolute;
+
+  video {
+    width: 100%;
+    z-index: 0;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+.hud {
+  background-color: var(--clr-neutral-3t);
+  color: var(--clr-neutral-9);
+  font-size: 2em;
+  inset-block-start: 0;
+  inset-inline: 0;
+  padding: 3rem;
+  position: absolute;
+  z-index: 1;
+  animation-name: fade-out;
+  animation-duration: 1s;
+  animation-delay: 5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
