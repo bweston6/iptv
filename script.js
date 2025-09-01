@@ -10,7 +10,7 @@ if (document.readyState === "loading") {
 
 function init() {
   if (!settings['m3u-url']) {
-    window.location.replace('./settings.html');
+    window.location.replace('./settings');
     return;
   }
 

@@ -1,4 +1,4 @@
-import { settings } from './models/settings.js';
+import { settings } from '../models/settings.js';
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
@@ -24,6 +24,6 @@ function init() {
       localStorage.setItem(key, value);
     }
 
-    window.location.href = "./";
+    window.location.href = "../";
   });
 }
