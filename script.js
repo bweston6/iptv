@@ -1,25 +1,18 @@
-import Settings from './settings.js';
+import { settings } from './models/settings.js';
 
-const settings = new Settings({
-  'm3u-url': localStorage.getItem('m3u-url')
-});
 let channels = JSON.parse(localStorage.getItem('channels'));
 
-document.addEventListener('DOMContentLoaded', _ => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init());
+} else {
   init();
-});
+}
 
 function init() {
   if (!settings['m3u-url']) {
-    initSettings();
+    window.location.replace('./settings.html');
     return;
   }
-  initVideo();
-}
-
-function initVideo() {
-  const template = document.getElementById('video-player');
-  document.querySelector('body').appendChild(template.content.cloneNode(true));
 
   initChannels();
   initRemote();
@@ -29,7 +22,6 @@ function initRemote() {
   window.addEventListener('keydown', (e) => {
     const channelIndex = JSON.parse(localStorage.getItem('channel-index')) ?? 0;
     let newChannelIndex = channelIndex;
-    console.table(typeof e.key, e.key);
     switch (e.key) {
       case "ArrowUp":
       case "PageUp":
@@ -95,29 +87,8 @@ function typeChannel(character) {
   }, 1000);
 }
 
-function initSettings() {
-  const template = document.getElementById('settings-page');
-  document.querySelector('body').appendChild(template.content.cloneNode(true));
-
-  for (const [key, value] of settings.settings) {
-    const input = document.querySelector(`[name=${key}]`);
-    if (input) {
-      input.value = value;
-    }
-  }
-
-  const form = document.getElementById('settings-form');
-  form.addEventListener('submit', (e) => {
-    const formData = new FormData(e.target, e.submitter);
-    for (const [key, value] of formData) {
-      localStorage.setItem(key, value);
-    }
-  });
-}
-
-
 async function initChannels() {
-  if (!channels) {
+  if (!channels || channels.length === 0) {
     const response = await fetch(settings['m3u-url']);
     const text = await response.text();
     channels = parseM3U(text);
@@ -128,13 +99,13 @@ async function initChannels() {
 }
 
 function parseM3U(m3u) {
-  const regex = new RegExp('^#EXTINF:.*tvg-chno="(?<number>\\d+)".*,(?<name>.*)\\n(?<stream>.*)', 'gm')
+  const regex = new RegExp('^#EXTINF:.*(?:tvg-chno="(?<number>\\d+)")?.*,(?<name>.*)\\n(?<stream>.*)', 'gm')
   const tracks = Array.from(m3u.matchAll(regex)).map((track) => track.groups);
   return tracks;
 }
 
 function changeChannel(channel) {
-  document.getElementById('channel-number').textContent = channel.number;
+  document.getElementById('channel-number').textContent = channel?.number;
   document.getElementById('channel-name').textContent = channel.name;
   document.querySelector('.hud').getAnimations().forEach((animation) => {
     animation.currentTime = 0;
@@ -151,4 +122,3 @@ function changeChannel(channel) {
   videoElement.src = channel.stream;
   videoElement.play();
 }
-

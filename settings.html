@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <title>IPTV | Settings</title>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="style.css" rel="stylesheet" />
+    <script src="settings.js" type="module"></script>
+    <script src="webOSTVjs-1.2.10/webOSTV.js"></script>
+  </head>
+  <body>
+    <h1>IPTV</h1>
+    <h2>Settings</h2>
+    <form id="settings-form" action="./index.html" method="get">
+      <fieldset>
+        <legend>Server Settings</legend>
+
+        <label for="m3u-url">M3U URL</label>
+        <input id="m3u-url" name="m3u-url" type="url" />
+      </fieldset>
+      <input id="save" type="submit" value="Save" />
+    </form>
+  </body>
+</html>
