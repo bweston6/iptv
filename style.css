@@ -37,11 +37,10 @@ body {
   display: grid;
   inset: 0 0;
   position: absolute;
-
-  video {
-    width: 100%;
-    z-index: 0;
-  }
+}
+#stream video {
+  width: 100%;
+  z-index: 0;
 }
 
 .hidden {
