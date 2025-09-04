@@ -11,9 +11,17 @@
     <script src="webOSTVjs-1.2.10/webOSTV.js"></script>
   </head>
   <body>
-    <div class="hud">
+    <div class="hud normally-hidden">
       <h1><span id="channel-number"></span> <span id="channel-name"></span></h1>
     </div>
     <div id="stream"></div>
+    <div aria-role="navigation" arial-label="main" class="normally-hidden show-on-mousemove">
+      <div class="left"></div>
+      <div class="right">
+        <a href="./settings/index.html" class="button">
+          <img class="icon" src="assets/svg/settings.svg" alt="settings" />
+        </a>
+      </div>
+    </div>
   </body>
 </html>

@@ -17,14 +17,16 @@
 }
 
 html {
+  color-scheme: dark;
   height: 100%;
   overflow: auto;
 }
 
 body {
-  background-color: var(--clr-neutral-9);
-  color: var(--clr-neutral-0);
-  font-family: system-ui sans-serif;
+  background-color: var(--clr-neutral-0);
+  color: var(--clr-neutral-9);
+  font-family: system-ui, sans-serif;
+  font-size: 2rem;
   height: 100%;
   margin: 0;
   overflow: auto;
@@ -50,12 +52,14 @@ body {
 .hud {
   background-color: var(--clr-neutral-3t);
   color: var(--clr-neutral-9);
-  font-size: 2em;
   inset-block-start: 0;
   inset-inline: 0;
   padding: 3rem;
   position: absolute;
   z-index: 1;
+}
+
+.normally-hidden {
   animation-name: fade-out;
   animation-duration: 1s;
   animation-delay: 5s;
@@ -66,4 +70,60 @@ body {
   to {
     opacity: 0;
   }
+}
+
+[aria-role="navigation"] {
+  color: var(--clr-neutral-9);
+  display: flex;
+  inset-block-end: 0;
+  inset-inline: 0;
+  justify-content: space-between;
+  padding: 3rem;
+  position: absolute;
+  z-index: 1;
+}
+
+img.icon {
+  height: 2em;
+}
+
+.button {
+  display: inline-flex;
+  padding: 1rem;
+  background-color: var(--clr-neutral-3);
+  border-radius: 0.5rem;
+  border-style: none;
+}
+.button:is(:focus-visible, :hover) {
+  background-color: var(--clr-neutral-3t);
+}
+:is(.button, input):focus-visible {
+  outline: solid var(--clr-neutral-9) 0.25rem;
+}
+
+input,
+button {
+  font-size: inherit;
+}
+
+fieldset {
+  border-radius: 1rem;
+  border-style: solid;
+  display: grid;
+  margin-block: 1rem;
+  padding: 1.5rem;
+}
+label {
+  margin-block-end: 0.5rem;
+}
+label:not(:first-of-type) {
+  margin-block-start: 2rem;
+}
+input[type="url"] {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-style: none;
+}
+form input[type="submit"] {
+  float: right;
 }

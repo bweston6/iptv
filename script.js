@@ -1,5 +1,6 @@
-import { settings } from './models/settings.js';
 import { Channels } from './models/channels.js';
+import { nextInteractiveElement, previousInteractiveElement } from './helpers/input.js';
+import { settings } from './models/settings.js';
 
 let channels;
 
@@ -17,11 +18,20 @@ async function init() {
 
   channels = await Channels.init(settings);
   changeChannel(channels.channel);
-  initRemote();
+  initInput();
 }
 
-function initRemote() {
+function initInput() {
   window.addEventListener('keydown', (e) => {
+    console.log(e.key);
+    switch (e.key) {
+      // animations
+      case "ArrowLeft":
+      case "ArrowRight":
+      case "Tab":
+        showOnMouseMove();
+        break;
+    };
     switch (e.key) {
       case "ArrowUp":
       case "PageUp":
@@ -32,6 +42,12 @@ function initRemote() {
       case "PageDown":
         channels.channelDown();
         changeChannel(channels.channel);
+        break;
+      case "ArrowRight":
+        nextInteractiveElement(document.activeElement).focus({ 'focusVisible': true });
+        break;
+      case "ArrowLeft":
+        previousInteractiveElement(document.activeElement).focus({ 'focusVisible': true });
         break;
       case "1":
       case "2":
@@ -46,6 +62,17 @@ function initRemote() {
         typeChannel(e.key);
         break;
     }
+  });
+
+  window.addEventListener('mousemove', showOnMouseMove);
+}
+
+function showOnMouseMove() {
+  document.querySelectorAll('.show-on-mousemove').forEach((element) => {
+    element.getAnimations().forEach((animation) => {
+      animation.currentTime = 0;
+      animation.play();
+    });
   });
 }
 

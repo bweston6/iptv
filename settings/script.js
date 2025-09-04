@@ -1,4 +1,5 @@
 import { settings } from '../models/settings.js';
+import { nextInteractiveElement, previousInteractiveElement } from '../helpers/input.js';
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
@@ -7,6 +8,24 @@ if (document.readyState === "loading") {
 }
 
 function init() {
+  initInput();
+  initForm();
+}
+
+function initInput() {
+  window.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case "ArrowDown":
+        nextInteractiveElement(document.activeElement).focus({ 'focusVisible': true });
+        break;
+      case "ArrowUp":
+        previousInteractiveElement(document.activeElement).focus({ 'focusVisible': true });
+        break;
+    }
+  });
+}
+
+function initForm() {
   for (const [key, value] of settings.settings) {
     const input = document.querySelector(`[name=${key}]`);
     if (input) {
@@ -24,6 +43,6 @@ function init() {
       localStorage.setItem(key, value);
     }
 
-    window.location.href = "../";
+    window.location.href = "../index.html";
   });
 }
