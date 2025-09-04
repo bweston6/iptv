@@ -79,6 +79,7 @@ let channelString = "";
 let channelTimeoutId;
 function typeChannel(character) {
   channelString += character;
+  Array.from(document.getElementById('channel-icon').children).forEach(child => child.remove());
   document.getElementById('channel-number').textContent = channelString;
   document.getElementById('channel-name').textContent = "";
   document.querySelector('.hud').getAnimations().forEach((animation) => {
