@@ -88,7 +88,6 @@ export class Channels {
         .map(this.#parseXmlProgramme);
     });
 
-    console.log(this.channels);
     // localStorage.setItem('channels', JSON.stringify(this.channels));
   }
 
