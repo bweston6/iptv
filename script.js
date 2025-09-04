@@ -23,7 +23,6 @@ async function init() {
 
 function initInput() {
   window.addEventListener('keydown', (e) => {
-    console.log(e.key);
     switch (e.key) {
       // animations
       case "ArrowLeft":
@@ -100,7 +99,16 @@ function typeChannel(character) {
 }
 
 function changeChannel(channel) {
-  document.getElementById('channel-number').textContent = channel?.number;
+  const channelIconElement = document.getElementById('channel-icon');
+  Array.from(channelIconElement.children).forEach(child => child.remove());
+  if (channel.icon) {
+    const imgElement = document.createElement('img');
+    imgElement.src = channel.icon;
+    imgElement.alt = "";
+    channelIconElement.appendChild(imgElement);
+  }
+
+  document.getElementById('channel-number').textContent = channel.number;
   document.getElementById('channel-name').textContent = channel.name;
   document.querySelector('.hud').getAnimations().forEach((animation) => {
     animation.currentTime = 0;

@@ -83,11 +83,13 @@ export class Channels {
       });
 
     this.channels.forEach((channel) => {
+      channel.icon = xmltv.querySelector(`channel[id='${channel.id}'] > icon`)?.getAttribute('src');
       channel.programmes = Array.from(xmltv.querySelectorAll(`[channel='${channel.id}']`))
         .map(this.#parseXmlProgramme);
     });
 
-    localStorage.setItem('channels', JSON.stringify(this.channels));
+    console.log(this.channels);
+    // localStorage.setItem('channels', JSON.stringify(this.channels));
   }
 
   #parseXmlProgramme(xmlProgramme) {
