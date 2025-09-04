@@ -1,6 +1,7 @@
 export class Settings {
   constructor(settings) {
     this['m3u-url'] = settings['m3u-url'];
+    this['xmltv-url'] = settings['xmltv-url'];
   }
 
   get settings() {
@@ -9,5 +10,6 @@ export class Settings {
 }
 
 export const settings = new Settings({
-  'm3u-url': localStorage.getItem('m3u-url')
+  'm3u-url': localStorage.getItem('m3u-url'),
+  'xmltv-url': localStorage.getItem('xmltv-url')
 });

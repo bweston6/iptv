@@ -12,6 +12,7 @@ export class Channels {
       channels.channels = await channels.#getChannelsFromSettings(settings)
       localStorage.setItem('channels', JSON.stringify(channels.channels));
     }
+    channels.#getGuideFromSettings(settings);
     channels.#channel = channels.channels[channels.#channelIndex];
 
     return channels;
@@ -68,8 +69,44 @@ export class Channels {
   }
 
   #parseM3U(m3u) {
-    const regex = new RegExp('^#EXTINF:.*?(?:tvg-chno="(?<number>\\d+)")?,(?<name>.*)\\n(?<stream>.*)', 'gm')
+    const regex = new RegExp('#EXTINF:(?<duration>-?\\d+).*?(?: tvg-id="(?<id>[a-z0-9]+)" tvg-chno="(?<number>\\d+)")?,(?<name>.*)\\n(?<stream>.*)', 'gm')
     const tracks = Array.from(m3u.matchAll(regex)).map((track) => track.groups);
     return tracks;
+  }
+
+  async #getGuideFromSettings(settings) {
+    const xmltv = await fetch(settings['xmltv-url'])
+      .then((response) => response.text())
+      .then((text) => {
+        const parser = new DOMParser();
+        return parser.parseFromString(text, "text/xml");
+      });
+
+    this.channels.forEach((channel) => {
+      channel.programmes = Array.from(xmltv.querySelectorAll(`[channel='${channel.id}']`))
+        .map(this.#parseXmlProgramme);
+    });
+
+    localStorage.setItem('channels', JSON.stringify(this.channels));
+  }
+
+  #parseXmlProgramme(xmlProgramme) {
+    const programme = {};
+
+    Array.from(xmlProgramme.attributes).forEach((attribute) => {
+      programme[attribute.name] = attribute.value;
+    });
+
+    Array.from(xmlProgramme.children).forEach((child) => {
+      const node = { 'text': child.textContent };
+
+      Array.from(child.attributes).forEach((attribute) => {
+        node[attribute.name] = attribute.value;
+      });
+
+      programme[child.nodeName] = node;
+    })
+
+    return programme;
   }
 }
