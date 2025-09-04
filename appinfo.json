@@ -1,10 +1,11 @@
 {
+  "icon": "icon80.png",
+  "iconColor": "#ffffff",
   "id": "uk.bweston.iptv",
-  "version": "0.0.1",
-  "vendor": "Ben Weston",
-  "type": "web",
+  "largeIcon": "icon130.png",
   "main": "index.html",
   "title": "IPTV",
-  "icon": "icon.png",
-  "largeIcon": "largeIcon.png"
+  "type": "web",
+  "vendor": "Ben Weston",
+  "version": "0.0.1"
 }
