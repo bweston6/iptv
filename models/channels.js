@@ -1,18 +1,20 @@
 export class Channels {
   #channel = undefined;
 
-  constructor() {
+  constructor(settings, db) {
     this.channels = JSON.parse(localStorage.getItem('channels'));
+    this.db = db;
+    this.settings = settings;
   }
 
-  static async init(settings) {
-    const channels = new Channels();
+  static async init(settings, db) {
+    const channels = new Channels(settings, db);
 
     if (!channels.channels || !channels.channels.length) {
-      channels.channels = await channels.#getChannelsFromSettings(settings)
+      channels.channels = await channels.#getChannelsFromSettings()
       localStorage.setItem('channels', JSON.stringify(channels.channels));
     }
-    channels.#getGuideFromSettings(settings);
+    channels.#getGuideFromSettings();
     channels.#channel = channels.channels[channels.#channelIndex];
 
     return channels;
@@ -62,8 +64,8 @@ export class Channels {
     localStorage.setItem('channel-index', JSON.stringify(index));
   }
 
-  async #getChannelsFromSettings(settings) {
-    return fetch(settings['m3u-url'])
+  async #getChannelsFromSettings() {
+    return fetch(this.settings['m3u-url'])
       .then(response => response.text())
       .then(text => this.#parseM3U(text));
   }
@@ -74,8 +76,8 @@ export class Channels {
     return tracks;
   }
 
-  async #getGuideFromSettings(settings) {
-    const xmltv = await fetch(settings['xmltv-url'])
+  async #getGuideFromSettings() {
+    const xmltv = await fetch(this.settings['xmltv-url'])
       .then((response) => response.text())
       .then((text) => {
         const parser = new DOMParser();
@@ -87,8 +89,6 @@ export class Channels {
       channel.programmes = Array.from(xmltv.querySelectorAll(`[channel='${channel.id}']`))
         .map(this.#parseXmlProgramme);
     });
-
-    // localStorage.setItem('channels', JSON.stringify(this.channels));
   }
 
   #parseXmlProgramme(xmlProgramme) {

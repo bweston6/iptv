@@ -43,6 +43,6 @@ function initForm() {
       localStorage.setItem(key, value);
     }
 
-    window.location.href = "../index.html";
+    history.back();
   });
 }

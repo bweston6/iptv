@@ -1,8 +1,10 @@
 import { Channels } from './models/channels.js';
+import { Database } from './models/database.js';
 import { nextInteractiveElement, previousInteractiveElement } from './helpers/input.js';
 import { settings } from './models/settings.js';
 
 let channels;
+let db;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init());
@@ -16,7 +18,8 @@ async function init() {
     return;
   }
 
-  channels = await Channels.init(settings);
+  db = await new Database();
+  channels = await Channels.init(settings, db);
   changeChannel(channels.channel);
   initInput();
 }
