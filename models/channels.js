@@ -1,3 +1,5 @@
+import { Programme } from "../objects/programme.js";
+
 export class Channels {
   #channel = undefined;
 
@@ -84,18 +86,37 @@ export class Channels {
         return parser.parseFromString(text, "text/xml");
       });
 
-    this.channels.forEach((channel) => {
-      channel.icon = xmltv.querySelector(`channel[id='${channel.id}'] > icon`)?.getAttribute('src');
-      channel.programmes = Array.from(xmltv.querySelectorAll(`[channel='${channel.id}']`))
-        .map(this.#parseXmlProgramme);
-    });
+    const transaction = this.db.transaction(["programme"], "readwrite");
+    const programmeStore = transaction.objectStore("programme")
+
+    const request = programmeStore.clear();
+    request.onsuccess = () => {
+      this.channels.forEach((channel) => {
+        channel.icon = xmltv.querySelector(`channel[id='${channel.id}'] > icon`)?.getAttribute('src');
+        channel.programmes = Array.from(xmltv.querySelectorAll(`[channel='${channel.id}']`))
+          .map(this.#parseXmlProgramme);
+
+        channel.programmes.forEach((programme) => {
+          programmeStore.add(programme);
+        });
+      });
+    };
+
+    this.db
+      .transaction(["programme"])
+      .objectStore("programme")
+      .index("channelId")
+      .getAll("0ce34d2af6bed804dd608fd3cb8a37cf")
+      .onsuccess = (e) => {
+        console.log(e.target.result);
+      };
   }
 
   #parseXmlProgramme(xmlProgramme) {
-    const programme = {};
+    const data = {};
 
     Array.from(xmlProgramme.attributes).forEach((attribute) => {
-      programme[attribute.name] = attribute.value;
+      data[attribute.name] = attribute.value;
     });
 
     Array.from(xmlProgramme.children).forEach((child) => {
@@ -105,9 +126,9 @@ export class Channels {
         node[attribute.name] = attribute.value;
       });
 
-      programme[child.nodeName] = node;
+      data[child.nodeName] = node;
     })
 
-    return programme;
+    return new Programme(data);
   }
 }
