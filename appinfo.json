@@ -1,8 +1,8 @@
 {
-  "icon": "icon80.png",
+  "icon": "assets/png/icon80.png",
   "iconColor": "#ffffff",
   "id": "uk.bweston.iptv",
-  "largeIcon": "icon130.png",
+  "largeIcon": "assets/png/icon130.png",
   "main": "index.html",
   "title": "IPTV",
   "type": "web",

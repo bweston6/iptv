@@ -1,0 +1,92 @@
+
+:root {
+  --clr-neutral-0: hsl(0 0% 0%);
+  --clr-neutral-3: hsl(0 0% 30%);
+  --clr-neutral-5: hsl(0 0% 50%);
+  --clr-neutral-9: hsl(0 0% 100%);
+
+  --clr-neutral-0t: hsl(0 0% 0% / 90%);
+  --clr-neutral-3t: hsl(0 0% 30% / 90%);
+  --clr-neutral-5t: hsl(0 0% 50% / 90%);
+  --clr-neutral-9t: hsl(0 0% 100% / 90%);
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--clr-neutral-0);
+  color: var(--clr-neutral-9);
+  font-family: system-ui, sans-serif;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.normally-hidden {
+  animation-name: fade-out;
+  animation-duration: 1s;
+  animation-delay: 5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+img.icon {
+  height: 2em;
+}
+
+.button {
+  display: inline-flex;
+  padding: 1rem;
+  background-color: var(--clr-neutral-3);
+  border-radius: 0.5rem;
+  border-style: none;
+}
+.button:is(:focus-visible, :hover) {
+  background-color: var(--clr-neutral-3t);
+}
+:is(.button, input):focus-visible {
+  outline: solid var(--clr-neutral-9) 0.25rem;
+}
+
+input,
+button {
+  font-size: inherit;
+}
+
+fieldset {
+  border-radius: 1rem;
+  border-style: solid;
+  display: grid;
+  margin-block: 1rem;
+  padding: 1.5rem;
+}
+label {
+  margin-block-end: 0.5rem;
+}
+label:not(:first-of-type) {
+  margin-block-start: 2rem;
+}
+input[type="url"] {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-style: none;
+}
+form input[type="submit"] {
+  float: right;
+}

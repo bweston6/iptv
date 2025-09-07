@@ -1,5 +1,5 @@
-import { settings } from '../models/settings.js';
-import { nextInteractiveElement, previousInteractiveElement } from '../helpers/input.js';
+import { settings } from '../js/models/settings.js';
+import { nextInteractiveElement, previousInteractiveElement } from '../js/helpers/input.js';
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);

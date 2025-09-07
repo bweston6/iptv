@@ -16,7 +16,7 @@ export class Channels {
       channels.channels = await channels.#getChannelsFromSettings()
       localStorage.setItem('channels', JSON.stringify(channels.channels));
     }
-    channels.#getGuideFromSettings();
+    channels.channels = await channels.#getGuideFromSettings();
     channels.#channel = channels.channels[channels.#channelIndex];
 
     return channels;
@@ -86,30 +86,32 @@ export class Channels {
         return parser.parseFromString(text, "text/xml");
       });
 
-    const transaction = this.db.transaction(["programme"], "readwrite");
-    const programmeStore = transaction.objectStore("programme")
-
-    const request = programmeStore.clear();
-    request.onsuccess = () => {
+    // const transaction = this.db.transaction(["programme"], "readwrite");
+    // const programmeStore = transaction.objectStore("programme")
+    //
+    // const request = programmeStore.clear();
+    // request.onsuccess = () => {
       this.channels.forEach((channel) => {
         channel.icon = xmltv.querySelector(`channel[id='${channel.id}'] > icon`)?.getAttribute('src');
         channel.programmes = Array.from(xmltv.querySelectorAll(`[channel='${channel.id}']`))
           .map(this.#parseXmlProgramme);
 
-        channel.programmes.forEach((programme) => {
-          programmeStore.add(programme);
-        });
+        // channel.programmes.forEach((programme) => {
+        //   programmeStore.add(programme);
+        // });
       });
-    };
+    // };
 
-    this.db
-      .transaction(["programme"])
-      .objectStore("programme")
-      .index("channelId")
-      .getAll("0ce34d2af6bed804dd608fd3cb8a37cf")
-      .onsuccess = (e) => {
-        console.log(e.target.result);
-      };
+    return this.channels;
+
+    // this.db
+    //   .transaction(["programme"])
+    //   .objectStore("programme")
+    //   .index("channelId")
+    //   .getAll("0ce34d2af6bed804dd608fd3cb8a37cf")
+    //   .onsuccess = (e) => {
+    //     console.log(e.target.result);
+    //   };
   }
 
   #parseXmlProgramme(xmlProgramme) {

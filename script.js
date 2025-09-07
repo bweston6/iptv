@@ -1,7 +1,7 @@
-import { Channels } from './models/channels.js';
-import { Database } from './models/database.js';
-import { nextInteractiveElement, previousInteractiveElement } from './helpers/input.js';
-import { settings } from './models/settings.js';
+import { Channels } from './js/models/channels.js';
+import { Database } from './js/models/database.js';
+import { nextInteractiveElement, previousInteractiveElement } from './js/helpers/input.js';
+import { settings } from './js/models/settings.js';
 
 let channels;
 let db;
