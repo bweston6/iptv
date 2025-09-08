@@ -9,7 +9,7 @@ export class Channel {
     this.id = id;
     this.name = name;
     this.stream = stream;
-    this.number = number;
+    this.number = Number(number);
     this.icon = icon;
   }
 } 

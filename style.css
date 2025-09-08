@@ -22,6 +22,9 @@
   position: absolute;
   z-index: 1;
 }
+.hud img {
+  font-size: 2em;
+}
 
 [aria-role="navigation"] {
   color: var(--clr-neutral-9);

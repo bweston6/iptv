@@ -92,11 +92,14 @@ header {
 }
 
 .channel-header {
+  align-items: center;
   background: linear-gradient(
     90deg,
     var(--clr-neutral-0) 80%,
     rgba(0, 0, 0, 0) 100%
   );
+  display: flex;
+  gap: 1rem;
   grid-area: channel-header;
   height: 100%;
   inset-inline-start: 0;
@@ -105,6 +108,12 @@ header {
   position: sticky;
   text-overflow: ellipsis;
   width: 20ch;
+}
+
+.channel-header h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
 }
 
 #guide > li > ol {

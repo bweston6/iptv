@@ -18,9 +18,15 @@ async function init() {
 
     const channelHeader = document.createElement('div');
     channelHeader.classList.add('channel-header');
+    const channelIcon = document.createElement('img');
+    channelIcon.alt = "";
+    channelIcon.classList.add('icon');
+    channelIcon.loading = "lazy";
+    channelIcon.src = channel.icon;
     const channelName = document.createElement('h2');
     channelName.textContent = channel.name;
 
+    channelHeader.append(channelIcon);
     channelHeader.append(channelName);
     channelElement.append(channelHeader);
 
