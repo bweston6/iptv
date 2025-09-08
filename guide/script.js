@@ -8,24 +8,6 @@ if (document.readyState === "loading") {
   init();
 }
 
-
-function formatTime(time) {
-  return time.toLocaleTimeString(navigator.language, {
-    timeStyle: "short"
-  });
-}
-
-function roundToNext30MinIncrement(time) {
-  const nextTime = new Date(time);
-
-  nextTime.setMinutes(nextTime.getMinutes() + 30);
-
-  nextTime.setMilliseconds(0);
-  nextTime.setSeconds(0);
-  nextTime.setMinutes(Math.round(nextTime.getMinutes() / 30) * 30);
-  return nextTime;
-}
-
 async function init() {
   const db = await new Database();
   const channels = await Channels.init(settings, db);
@@ -87,7 +69,6 @@ async function init() {
     }
 
     channelElement.append(programmeList);
-
     document.getElementById('guide').append(channelElement);
   });
 }
@@ -96,4 +77,29 @@ function millisToWidth(millis) {
   // 30 mins = 20vw
   const ratio = 20 / (30 * 60000)
   return `${millis * ratio}vw`;
+}
+
+function formatTime(time) {
+  let formatter = new Intl.DateTimeFormat(navigator.language, {
+    timeStyle: "short"
+  });
+
+  if (time.getHours() == 0 && time.getMinutes() == 0) {
+    formatter = new Intl.DateTimeFormat(navigator.language, {
+      weekday: "short", day: "numeric", month: "short"
+    });
+  }
+
+  return formatter.format(time);
+}
+
+function roundToNext30MinIncrement(time) {
+  const nextTime = new Date(time);
+
+  nextTime.setMinutes(nextTime.getMinutes() + 30);
+
+  nextTime.setMilliseconds(0);
+  nextTime.setSeconds(0);
+  nextTime.setMinutes(Math.round(nextTime.getMinutes() / 30) * 30);
+  return nextTime;
 }
