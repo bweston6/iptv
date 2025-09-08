@@ -47,6 +47,14 @@ async function init() {
         continue;
       }
 
+      if (
+        channel.id == channels.channel.id &&
+        programme.start <= currentTime &&
+        programme.stop > currentTime
+      ) {
+        renderSelectedProgramme(channel, programme);
+      }
+
       if (programme.start < currentTime) {
         programme.start = currentTime;
       }
@@ -64,6 +72,7 @@ async function init() {
       programmeElement.classList.add('programme');
       programmeElement.textContent = programme.title;
       programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
+      programmeElement.addEventListener('mouseover', () => renderSelectedProgramme(channel, programme));
 
       programmeList.append(programmeElement);
     }
@@ -71,6 +80,27 @@ async function init() {
     channelElement.append(programmeList);
     document.getElementById('guide').append(channelElement);
   });
+}
+
+function renderSelectedProgramme(channel, programme) {
+  document.querySelector('#channel-name h1').textContent = channel.name;
+  document.querySelector('#channel-name img').src = channel.icon;
+  document.getElementById('programme-name').textContent = programme.title;
+  document.getElementById('programme-description').textContent = programme.description;
+
+  const currentTime = new Date();
+  if (
+    programme.start <= currentTime &&
+    programme.stop > currentTime
+  ) {
+    const streamElement = document.getElementById('stream');
+    Array.from(streamElement.children).forEach(child => child.remove());
+
+    const videoElement = document.createElement('video');
+    videoElement.src = channel.stream;
+    streamElement.append(videoElement);
+    videoElement.play();
+  }
 }
 
 function millisToWidth(millis) {

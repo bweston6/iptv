@@ -30,23 +30,35 @@ main {
 
 header {
   align-items: center;
+  background-color: var(--clr-neutral-0);
   display: grid;
   gap: 2rem;
   grid-template-areas: "preview selected-channel";
   grid-template-columns: 1fr 2fr;
-  background-color: var(--clr-neutral-0);
+  grid-template-rows: 20rem;
   padding: 1rem;
 }
 
 #stream {
+  grid-area: preview;
+  height: 100%;
+}
+
+#stream:empty {
   aspect-ratio: 16/9;
   background-color: var(--clr-neutral-3);
   border-radius: 1rem;
-  grid-area: preview;
+}
+
+#stream video {
+  border-radius: 1rem;
+  height: 100%;
+  width: 100%;
 }
 
 #selected-channel {
   grid-area: selected-channel;
+  height: 100%;
 }
 
 #channel-name {
@@ -68,6 +80,8 @@ header {
 
 #programme-description {
   margin-block: 0.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #guide {
