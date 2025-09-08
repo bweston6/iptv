@@ -8,9 +8,37 @@ if (document.readyState === "loading") {
   init();
 }
 
+
+function formatTime(time) {
+  return time.toLocaleTimeString(navigator.language, {
+    timeStyle: "short"
+  });
+}
+
+function roundToNext30MinIncrement(time) {
+  const nextTime = new Date(time);
+
+  nextTime.setMinutes(nextTime.getMinutes() + 30);
+
+  nextTime.setMilliseconds(0);
+  nextTime.setSeconds(0);
+  nextTime.setMinutes(Math.round(nextTime.getMinutes() / 30) * 30);
+  return nextTime;
+}
+
 async function init() {
   const db = await new Database();
   const channels = await Channels.init(settings, db);
+
+  const timeList = document.querySelector('#time ol');
+
+  let time = new Date();
+  console.log(time)
+  let nextTime = roundToNext30MinIncrement(time);
+  const timeListItem = document.createElement('li');
+  timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
+  timeListItem.textContent = formatTime(time);
+  timeList.append(timeListItem);
 
   channels.channels.forEach((channel) => {
     const channelElement = document.createElement('li');
@@ -31,14 +59,32 @@ async function init() {
     channelElement.append(channelHeader);
 
     const programmeList = document.createElement('ol');
-    channel.programmes.forEach((programme) => {
+    const currentTime = new Date();
+    for (const programme of channel.programmes) {
+      if (programme.stop < currentTime) {
+        continue;
+      }
+
+      if (programme.start < currentTime) {
+        programme.start = currentTime;
+      }
+
+      if (programme.stop > nextTime) {
+        time = nextTime;
+        nextTime = roundToNext30MinIncrement(time);
+        const timeListItem = document.createElement('li');
+        timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
+        timeListItem.textContent = formatTime(time);
+        timeList.append(timeListItem);
+      }
+
       const programmeElement = document.createElement('li');
       programmeElement.classList.add('programme');
       programmeElement.textContent = programme.title;
       programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
 
       programmeList.append(programmeElement);
-    });
+    }
 
     channelElement.append(programmeList);
 
