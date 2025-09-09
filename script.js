@@ -4,7 +4,7 @@ import { nextInteractiveElement, previousInteractiveElement } from './js/helpers
 import { settings } from './js/models/settings.js';
 
 let channels;
-let db;
+let database;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init());
@@ -13,13 +13,17 @@ if (document.readyState === "loading") {
 }
 
 async function init() {
+  // no bfcache
+  window.addEventListener('unload', function () { });
+  window.addEventListener('beforeunload', function () { });
+
   if (!settings['m3u-url']) {
     window.location.replace('./settings');
     return;
   }
 
-  db = await new Database();
-  channels = await Channels.init(settings, db);
+  database = await Database.init();
+  channels = await Channels.init(settings, database.db);
   changeChannel(channels.channel);
   initInput();
 }

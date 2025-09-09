@@ -1,5 +1,8 @@
-import { settings } from '../js/models/settings.js';
+import { Database } from '../js/models/database.js';
 import { nextInteractiveElement, previousInteractiveElement } from '../js/helpers/input.js';
+import { settings } from '../js/models/settings.js';
+
+let database;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
@@ -7,7 +10,8 @@ if (document.readyState === "loading") {
   init();
 }
 
-function init() {
+async function init() {
+  database = await Database.init();
   initInput();
   initForm();
 }
@@ -34,13 +38,18 @@ function initForm() {
   }
 
   const form = document.getElementById('settings-form');
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     localStorage.clear();
+    await database.clearAll();
+    console.log('clear')
+
 
     const formData = new FormData(e.target, e.submitter);
     for (const [key, value] of formData) {
-      localStorage.setItem(key, value);
+      if (value) {
+        localStorage.setItem(key, value);
+      }
     }
 
     history.back();

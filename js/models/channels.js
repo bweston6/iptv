@@ -13,8 +13,8 @@ export class Channels {
   static async init(settings, db) {
     const channels = new Channels(settings, db);
 
+    await channels.#cacheSources();
     await channels.#initChannels();
-    await channels.#initGuide();
 
     channels.#channel = channels.channels[channels.#channelIndex];
 
@@ -65,46 +65,89 @@ export class Channels {
     localStorage.setItem('channel-index', JSON.stringify(index));
   }
 
-  async #initChannels(cache = true) {
+  async #cacheSources(cache = true) {
+    let transaction = this.db.transaction(["channel", "programme"], "readwrite");
+    let channelStore = transaction.objectStore("channel");
+    let programmeStore = transaction.objectStore("programme");
+
     if (!cache) {
-      this.db.transaction(["channel"], "readwrite")
-        .objectStore("channel")
-        .clear();
+      channelStore.clear()
+      programmeStore.clear();
     }
 
+    // check if cache exists
     const channelCount = await new Promise(res => {
-      this.db.transaction(["channel"])
-        .objectStore("channel")
-        .count()
-        .onsuccess = (request) => res(request.target.result);
+      channelStore.count().onsuccess = (request) => res(request.target.result);
     });
-
-    if (channelCount) {
-      this.channels = await new Promise(res => {
-        this.db
-          .transaction(["channel"])
-          .objectStore("channel")
-          .index("number")
-          .getAll()
-          .onsuccess = (request) => res(request.target.result);
-      });
-
-      return this.channels;
+    const programmeCount = await new Promise(res => {
+      programmeStore.count().onsuccess = (request) => res(request.target.result);
+    });
+    if (channelCount !== 0 || programmeCount !== 0) {
+      return;
     }
 
-    this.channels = await fetch(this.settings['m3u-url'])
+    await this.#writeM3U();
+    await this.#writeXML();
+  }
+
+  async #writeM3U() {
+    // get m3u
+    const channels = await fetch(this.settings['m3u-url'])
       .then(response => response.text())
       .then(text => this.#parseM3U(text));
 
-    const channelStore = this.db.transaction(["channel"], "readwrite")
-      .objectStore("channel");
+    const transaction = this.db.transaction(["channel", "programme"], "readwrite");
+    const channelStore = transaction.objectStore("channel");
 
-    for (const channel of this.channels) {
-      await new Promise(res => {
-        channelStore.add(channel)
-          .onsuccess = res;
-      });
+    // write channels to DB
+    for (const channel of channels) {
+      channelStore.add(channel);
     }
+
+    transaction.commit();
+    return new Promise(res => { transaction.oncomplete = res });
+  }
+
+  async #writeXML() {
+    if (!this.settings['xmltv-url']) {
+      return;
+    }
+
+    // get xmltv
+    const xmltv = await fetch(this.settings['xmltv-url'])
+      .then(response => response.text())
+      .then(text => new DOMParser().parseFromString(text, "text/xml"));
+
+    const transaction = this.db.transaction(["channel", "programme"], "readwrite");
+    const channelStore = transaction.objectStore("channel");
+    const programmeStore = transaction.objectStore("programme");
+
+    // write channel icons to DB
+    const channels = await new Promise(res => { channelStore.getAll().onsuccess = request => res(request.target.result) });
+    for (const channel of channels) {
+      channel.icon = xmltv.querySelector(`channel[id='${channel.id}'] > icon`)?.getAttribute('src');
+      channelStore.put(channel);
+    }
+
+    // write programmes to DB
+    const programmes = Array.from(xmltv.querySelectorAll("[channel]")).map(this.#parseXmlProgramme);
+    for (const programme of programmes) {
+      programmeStore.add(programme);
+    }
+
+    transaction.commit();
+    return new Promise(res => { transaction.oncomplete = res });
+  }
+
+  async #initChannels() {
+    this.channels = await new Promise(res => {
+      this.db
+        .transaction(["channel"])
+        .objectStore("channel")
+        .index("number")
+        .getAll()
+        .onsuccess = (request) => res(request.target.result);
+    });
 
     return this.channels;
   }

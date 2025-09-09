@@ -9,8 +9,8 @@ if (document.readyState === "loading") {
 }
 
 async function init() {
-  const db = await new Database();
-  const channels = await Channels.init(settings, db);
+  const database = await Database.init();
+  const channels = await Channels.init(settings, database.db);
 
   const timeList = document.querySelector('#time ol');
 
@@ -42,9 +42,9 @@ async function init() {
 
     const programmeList = document.createElement('ol');
     const currentTime = new Date();
-    for (const programme of channel.programmes) {
+    channel.programmes?.forEach(programme => {
       if (programme.stop < currentTime) {
-        continue;
+        return;
       }
 
       if (
@@ -75,7 +75,7 @@ async function init() {
       programmeElement.addEventListener('mouseover', () => renderSelectedProgramme(channel, programme));
 
       programmeList.append(programmeElement);
-    }
+    });
 
     channelElement.append(programmeList);
     document.getElementById('guide').append(channelElement);
