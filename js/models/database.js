@@ -46,11 +46,9 @@ export class Database {
   }
 
   clearAll() {
-    const objectStores = ["channel", "programme", "programmeCategory", "category"];
+    let transaction = this.db.transaction(this.db.objectStoreNames, "readwrite");
 
-    let transaction = this.db.transaction(objectStores, "readwrite");
-
-    objectStores.forEach(storeName => {
+    this.db.objectStoreNames.forEach(storeName => {
       transaction.objectStore(storeName).clear();
     })
 

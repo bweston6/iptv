@@ -36,3 +36,29 @@
   position: absolute;
   z-index: 1;
 }
+
+[aria-role="navigation"] .button {
+  display: flex-inline;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+[aria-role="navigation"] .button::after {
+  content: "";
+  width: 0.5em;
+  border-block-end: 0.2rem solid var(--_btn-colour);
+}
+
+[aria-role="navigation"] .button:nth-last-child(1) {
+  --_btn-colour: var(--clr-blue);
+}
+[aria-role="navigation"] .button:nth-last-child(2) {
+  --_btn-colour: var(--clr-yellow);
+}
+[aria-role="navigation"] .button:nth-last-child(3) {
+  --_btn-colour: var(--clr-green);
+}
+[aria-role="navigation"] .button:nth-last-child(4) {
+  --_btn-colour: var(--clr-red);
+}

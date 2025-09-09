@@ -21,6 +21,9 @@ async function init() {
     window.location.replace('./settings');
     return;
   }
+  if (settings['xmltv-url']) {
+    document.querySelector('[aria-label="guide"]').classList.remove('hidden');
+  }
 
   database = await Database.init();
   channels = await Channels.init(settings, database.db);

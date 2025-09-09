@@ -103,7 +103,6 @@ header {
   gap: 1rem;
   grid-template-areas: "channel-header programmes";
   grid-template-columns: 20ch auto;
-  width: fit-content;
 }
 
 .channel-header {

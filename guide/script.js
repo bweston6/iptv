@@ -2,6 +2,8 @@ import { Channels } from "../js/models/channels.js";
 import { Database } from "../js/models/database.js";
 import { settings } from "../js/models/settings.js";
 
+const currentTime = new Date();
+
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init());
 } else {
@@ -9,22 +11,71 @@ if (document.readyState === "loading") {
 }
 
 async function init() {
-  const database = await Database.init();
-  const channels = await Channels.init(settings, database.db);
+  const db = (await Database.init()).db;
+  const channels = await Channels.init(settings, db);
 
   const timeList = document.querySelector('#time ol');
 
   let time = new Date();
-  console.log(time)
   let nextTime = roundToNext30MinIncrement(time);
   const timeListItem = document.createElement('li');
   timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
   timeListItem.textContent = formatTime(time);
   timeList.append(timeListItem);
 
+  const channelObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) {
+        continue;
+      }
+
+      channelObserver.unobserve(entry.target);
+
+      const programmeList = entry.target.querySelector('.programme-list');
+
+      db.transaction('programme')
+        .objectStore('programme')
+        .index('channelId')
+        .getAll(entry.target.dataset.id)
+        .onsuccess = request => {
+          const programmes = request.target.result
+            .filter(programme => {
+              return programme.stop > currentTime &&
+                programme.start <= new Date(currentTime).setHours(currentTime.getHours() + 24)
+            })
+            .sort((a, b) => a.start - b.start)
+
+          for (const programme of programmes) {
+            if (programme.start < currentTime) {
+              programme.start = currentTime;
+            }
+
+            while (programme.stop > nextTime) {
+              time = nextTime;
+              nextTime = roundToNext30MinIncrement(time);
+              const timeListItem = document.createElement('li');
+              timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
+              timeListItem.textContent = formatTime(time);
+              timeList.append(timeListItem);
+            }
+
+            const programmeElement = document.createElement('li');
+            programmeElement.classList.add('programme');
+            programmeElement.textContent = programme.title;
+            programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
+
+            programmeElement.addEventListener('mouseover', () => renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme));
+
+            programmeList.append(programmeElement);
+          }
+        }
+    }
+  });
+
   channels.channels.forEach((channel) => {
     const channelElement = document.createElement('li');
     channelElement.classList.add('channel');
+    channelElement.dataset.id = channel.id;
 
     const channelHeader = document.createElement('div');
     channelHeader.classList.add('channel-header');
@@ -41,44 +92,11 @@ async function init() {
     channelElement.append(channelHeader);
 
     const programmeList = document.createElement('ol');
-    const currentTime = new Date();
-    channel.programmes?.forEach(programme => {
-      if (programme.stop < currentTime) {
-        return;
-      }
-
-      if (
-        channel.id == channels.channel.id &&
-        programme.start <= currentTime &&
-        programme.stop > currentTime
-      ) {
-        renderSelectedProgramme(channel, programme);
-      }
-
-      if (programme.start < currentTime) {
-        programme.start = currentTime;
-      }
-
-      if (programme.stop > nextTime) {
-        time = nextTime;
-        nextTime = roundToNext30MinIncrement(time);
-        const timeListItem = document.createElement('li');
-        timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
-        timeListItem.textContent = formatTime(time);
-        timeList.append(timeListItem);
-      }
-
-      const programmeElement = document.createElement('li');
-      programmeElement.classList.add('programme');
-      programmeElement.textContent = programme.title;
-      programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
-      programmeElement.addEventListener('mouseover', () => renderSelectedProgramme(channel, programme));
-
-      programmeList.append(programmeElement);
-    });
-
+    programmeList.classList.add('programme-list');
     channelElement.append(programmeList);
+
     document.getElementById('guide').append(channelElement);
+    channelObserver.observe(channelElement);
   });
 }
 
@@ -130,6 +148,6 @@ function roundToNext30MinIncrement(time) {
 
   nextTime.setMilliseconds(0);
   nextTime.setSeconds(0);
-  nextTime.setMinutes(Math.round(nextTime.getMinutes() / 30) * 30);
+  nextTime.setMinutes(Math.floor(nextTime.getMinutes() / 30) * 30);
   return nextTime;
 }

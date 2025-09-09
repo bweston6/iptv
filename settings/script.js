@@ -42,8 +42,6 @@ function initForm() {
     e.preventDefault();
     localStorage.clear();
     await database.clearAll();
-    console.log('clear')
-
 
     const formData = new FormData(e.target, e.submitter);
     for (const [key, value] of formData) {
