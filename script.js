@@ -18,7 +18,7 @@ async function init() {
   window.addEventListener('beforeunload', function () { });
 
   // video
-  document.addEventListener('changechannel', changeChannel);
+  document.addEventListener('changechannel', ({ detail: channel }) => changeChannel(channel));
 
   if (!settings['m3u-url']) {
     window.location.href = './settings/index.html';
@@ -109,7 +109,7 @@ function typeChannel(character) {
   }, 1000);
 }
 
-function changeChannel({ detail: channel }) {
+function changeChannel(channel) {
   const channelIconElement = document.getElementById('channel-icon');
   Array.from(channelIconElement.children).forEach(child => child.remove());
   if (channel.icon) {

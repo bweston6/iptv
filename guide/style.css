@@ -97,6 +97,14 @@ header {
   scrollbar-width: none;
 }
 
+#guide::-webkit-scrollbar {
+  display: none;
+}
+
+#guide:focus-visible {
+  outline: none;
+}
+
 #guide > li {
   align-items: center;
   display: grid;

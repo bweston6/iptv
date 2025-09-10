@@ -11,15 +11,18 @@ if (document.readyState === "loading") {
 }
 
 async function init() {
-  document.addEventListener('changechannel', changeChannel);
   const db = (await Database.init()).db;
   const channels = await Channels.init(settings, db);
+
+  changeChannel(channels.channel);
+  document.addEventListener('changechannel', ({ detail: channel }) => changeChannel(channel));
 
   const timeList = document.querySelector('#time ol');
 
   let time = new Date();
   let nextTime = roundToNext30MinIncrement(time);
   const timeListItem = document.createElement('li');
+  timeListItem.role = "columnheader"
   timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
   timeListItem.textContent = formatTime(time);
   timeList.append(timeListItem);
@@ -55,17 +58,22 @@ async function init() {
               time = nextTime;
               nextTime = roundToNext30MinIncrement(time);
               const timeListItem = document.createElement('li');
+              timeListItem.role = "columnheader";
               timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
               timeListItem.textContent = formatTime(time);
               timeList.append(timeListItem);
             }
 
             const programmeElement = document.createElement('li');
+            programmeElement.role = "gridcell";
             programmeElement.classList.add('programme');
             programmeElement.textContent = programme.title;
             programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
 
             programmeElement.addEventListener('click', () => renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme));
+            if (channels.channel.id === programme.channelId) {
+              renderSelectedProgramme(channels.channel, programme);
+            }
 
             programmeList.append(programmeElement);
           }
@@ -76,6 +84,7 @@ async function init() {
   channels.channels.forEach((channel) => {
     const channelElement = document.createElement('li');
     channelElement.classList.add('channel');
+    channelElement.role = "row";
     channelElement.dataset.id = channel.id;
     channelElement.dataset.number = channel.number;
     channelElement.addEventListener('click', e => {
@@ -86,6 +95,7 @@ async function init() {
 
     const channelHeader = document.createElement('div');
     channelHeader.classList.add('channel-header');
+    channelHeader.role = "rowheader";
     const channelIcon = document.createElement('img');
     channelIcon.alt = "";
     channelIcon.classList.add('icon');
@@ -104,6 +114,12 @@ async function init() {
 
     document.getElementById('guide').append(channelElement);
     channelObserver.observe(channelElement);
+  });
+
+  document.querySelector(`.channel[data-id="${channels.channel.id}"]`).scrollIntoView({
+    behavior: "instant",
+    block: "center",
+    container: "nearest"
   });
 }
 
@@ -145,7 +161,7 @@ function roundToNext30MinIncrement(time) {
   return nextTime;
 }
 
-function changeChannel({ detail: channel }) {
+function changeChannel(channel) {
   const streamElement = document.getElementById('stream');
   Array.from(streamElement.children).forEach(child => child.remove());
 
