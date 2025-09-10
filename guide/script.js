@@ -23,8 +23,11 @@ async function init() {
   let nextTime = roundToNext30MinIncrement(time);
   const timeListItem = document.createElement('li');
   timeListItem.role = "columnheader"
-  timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
-  timeListItem.textContent = formatTime(time);
+  const duration = nextTime - time;
+  timeListItem.setAttribute('style', `width: ${millisToWidth(duration)}`);
+  if (duration >= 900000) {
+    timeListItem.textContent = formatTime(time);
+  }
   timeList.append(timeListItem);
 
   const channelObserver = new IntersectionObserver(entries => {
@@ -71,7 +74,10 @@ async function init() {
             programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
 
             programmeElement.addEventListener('click', () => renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme));
-            if (channels.channel.id === programme.channelId) {
+            if (channels.channel.id === programme.channelId &&
+              programme.start <= currentTime &&
+              programme.stop > currentTime
+            ) {
               renderSelectedProgramme(channels.channel, programme);
             }
 
@@ -87,15 +93,14 @@ async function init() {
     channelElement.role = "row";
     channelElement.dataset.id = channel.id;
     channelElement.dataset.number = channel.number;
-    channelElement.addEventListener('click', e => {
-      console.log('click', e.target.dataset.number);
-
-      channels.channel = Number(e.target.dataset.number);
-    });
 
     const channelHeader = document.createElement('div');
     channelHeader.classList.add('channel-header');
     channelHeader.role = "rowheader";
+    channelHeader.addEventListener('click', e => {
+      const number = e.target.closest('.channel').dataset.number;
+      channels.channel = Number(number);
+    });
     const channelIcon = document.createElement('img');
     channelIcon.alt = "";
     channelIcon.classList.add('icon');

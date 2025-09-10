@@ -35,7 +35,6 @@ async function init() {
 
 function initInput() {
   window.addEventListener('keydown', (e) => {
-    console.log(e);
     switch (e.key) {
       // animations
       case "ArrowLeft":
@@ -70,6 +69,14 @@ function initInput() {
       case "9":
       case "0":
         typeChannel(e.key);
+        break;
+    }
+    switch (e.keyCode) {
+      case 403: // yellow
+      case 404: // yellow
+      case 405: // yellow
+      case 406: // blue
+        colorButton(e.keyCode);
         break;
     }
   });
@@ -107,6 +114,12 @@ function typeChannel(character) {
     channelTimeoutId = undefined;
     channelString = ""
   }, 1000);
+}
+
+function colorButton(keyCode) {
+  const buttonIndex = keyCode - 403;
+  const buttons = document.querySelectorAll('[aria-role="navigation"] .button');
+  buttons[buttonIndex - (4 - buttons.length)].click();
 }
 
 function changeChannel(channel) {
