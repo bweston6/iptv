@@ -131,6 +131,10 @@ header {
   position: sticky;
 }
 
+.channel-header img {
+  filter: drop-shadow(1px 1px 2px var(--clr-neutral-0));
+}
+
 .channel .channel-header {
   cursor: pointer;
 }
