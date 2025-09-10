@@ -2,7 +2,7 @@ import { Channel } from "../objects/channel.js";
 import { Programme } from "../objects/programme.js";
 
 export class Channels {
-  #channel;
+  #_channel;
   channels;
 
   constructor(settings, db) {
@@ -19,6 +19,18 @@ export class Channels {
     channels.#channel = channels.channels[channels.#channelIndex];
 
     return channels;
+  }
+
+  set #channel(channel) {
+    if (channel.id !== this.#channel?.id) {
+      document.dispatchEvent(new CustomEvent('changechannel', { detail: channel }));
+    }
+
+    this.#_channel = channel;
+  }
+
+  get #channel() {
+    return this.#_channel;
   }
 
   get channel() {

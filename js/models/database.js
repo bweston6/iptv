@@ -48,9 +48,9 @@ export class Database {
   clearAll() {
     let transaction = this.db.transaction(this.db.objectStoreNames, "readwrite");
 
-    this.db.objectStoreNames.forEach(storeName => {
-      transaction.objectStore(storeName).clear();
-    })
+    for (const objectStoreName of this.db.objectStoreNames) {
+      transaction.objectStore(objectStoreName).clear();
+    }
 
     transaction.commit();
 

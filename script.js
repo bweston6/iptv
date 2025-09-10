@@ -17,8 +17,11 @@ async function init() {
   window.addEventListener('unload', function () { });
   window.addEventListener('beforeunload', function () { });
 
+  // video
+  document.addEventListener('changechannel', changeChannel);
+
   if (!settings['m3u-url']) {
-    window.location.replace('./settings');
+    window.location.href = './settings/index.html';
     return;
   }
   if (settings['xmltv-url']) {
@@ -27,12 +30,12 @@ async function init() {
 
   database = await Database.init();
   channels = await Channels.init(settings, database.db);
-  changeChannel(channels.channel);
   initInput();
 }
 
 function initInput() {
   window.addEventListener('keydown', (e) => {
+    console.log(e);
     switch (e.key) {
       // animations
       case "ArrowLeft":
@@ -45,12 +48,10 @@ function initInput() {
       case "ArrowUp":
       case "PageUp":
         channels.channelUp();
-        changeChannel(channels.channel);
         break;
       case "ArrowDown":
       case "PageDown":
         channels.channelDown();
-        changeChannel(channels.channel);
         break;
       case "ArrowRight":
         nextInteractiveElement(document.activeElement).focus({ 'focusVisible': true });
@@ -102,14 +103,13 @@ function typeChannel(character) {
   }
   channelTimeoutId = setTimeout(() => {
     channels.channel = Number(channelString)
-    changeChannel(channels.channel);
 
     channelTimeoutId = undefined;
     channelString = ""
   }, 1000);
 }
 
-function changeChannel(channel) {
+function changeChannel({ detail: channel }) {
   const channelIconElement = document.getElementById('channel-icon');
   Array.from(channelIconElement.children).forEach(child => child.remove());
   if (channel.icon) {

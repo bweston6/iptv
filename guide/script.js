@@ -11,6 +11,7 @@ if (document.readyState === "loading") {
 }
 
 async function init() {
+  document.addEventListener('changechannel', changeChannel);
   const db = (await Database.init()).db;
   const channels = await Channels.init(settings, db);
 
@@ -64,7 +65,7 @@ async function init() {
             programmeElement.textContent = programme.title;
             programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
 
-            programmeElement.addEventListener('mouseover', () => renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme));
+            programmeElement.addEventListener('click', () => renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme));
 
             programmeList.append(programmeElement);
           }
@@ -76,6 +77,12 @@ async function init() {
     const channelElement = document.createElement('li');
     channelElement.classList.add('channel');
     channelElement.dataset.id = channel.id;
+    channelElement.dataset.number = channel.number;
+    channelElement.addEventListener('click', e => {
+      console.log('click', e.target.dataset.number);
+
+      channels.channel = Number(e.target.dataset.number);
+    });
 
     const channelHeader = document.createElement('div');
     channelHeader.classList.add('channel-header');
@@ -105,20 +112,6 @@ function renderSelectedProgramme(channel, programme) {
   document.querySelector('#channel-name img').src = channel.icon;
   document.getElementById('programme-name').textContent = programme.title;
   document.getElementById('programme-description').textContent = programme.description;
-
-  const currentTime = new Date();
-  if (
-    programme.start <= currentTime &&
-    programme.stop > currentTime
-  ) {
-    const streamElement = document.getElementById('stream');
-    Array.from(streamElement.children).forEach(child => child.remove());
-
-    const videoElement = document.createElement('video');
-    videoElement.src = channel.stream;
-    streamElement.append(videoElement);
-    videoElement.play();
-  }
 }
 
 function millisToWidth(millis) {
@@ -150,4 +143,14 @@ function roundToNext30MinIncrement(time) {
   nextTime.setSeconds(0);
   nextTime.setMinutes(Math.floor(nextTime.getMinutes() / 30) * 30);
   return nextTime;
+}
+
+function changeChannel({ detail: channel }) {
+  const streamElement = document.getElementById('stream');
+  Array.from(streamElement.children).forEach(child => child.remove());
+
+  const videoElement = document.createElement('video');
+  videoElement.src = channel.stream;
+  streamElement.append(videoElement);
+  videoElement.play();
 }
