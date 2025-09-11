@@ -30,13 +30,6 @@ function initInput() {
 }
 
 function initForm() {
-  for (const [key, value] of settings.settings) {
-    const input = document.querySelector(`[name=${key}]`);
-    if (input) {
-      input.value = value;
-    }
-  }
-
   const form = document.getElementById('settings-form');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -52,4 +45,20 @@ function initForm() {
 
     history.back();
   });
+
+  const searchParams = new URLSearchParams(window.location.search);
+  for (const [key, value] of settings.settings) {
+    const input = document.querySelector(`[name=${key}]`);
+    if (input) {
+      input.value = value;
+    }
+    const validationMessage = searchParams.get(key);
+    if (validationMessage) {
+      input.setCustomValidity(validationMessage);
+      form.reportValidity();
+      input.addEventListener('input', e => {
+        e.target.setCustomValidity("")
+      });
+    }
+  }
 }

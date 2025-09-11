@@ -10,9 +10,11 @@ if (document.readyState === "loading") {
   init();
 }
 
+let channels;
+
 async function init() {
   const db = (await Database.init()).db;
-  const channels = await Channels.init(settings, db);
+  channels = await Channels.init(settings, db);
 
   changeChannel(channels.channel);
   document.addEventListener('changechannel', ({ detail: channel }) => changeChannel(channel));
@@ -73,7 +75,12 @@ async function init() {
             programmeElement.textContent = programme.title;
             programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
 
-            programmeElement.addEventListener('click', () => renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme));
+            programmeElement.addEventListener('click', (e) => {
+              document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
+              e.target.tabIndex = 0;
+              e.target.focus();
+              renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme)
+            });
             if (channels.channel.id === programme.channelId &&
               programme.start <= currentTime &&
               programme.stop > currentTime
@@ -98,6 +105,9 @@ async function init() {
     channelHeader.classList.add('channel-header');
     channelHeader.role = "rowheader";
     channelHeader.addEventListener('click', e => {
+      document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
+      e.target.tabIndex = 0;
+      e.target.focus();
       const number = e.target.closest('.channel').dataset.number;
       channels.channel = Number(number);
     });
@@ -121,11 +131,17 @@ async function init() {
     channelObserver.observe(channelElement);
   });
 
-  document.querySelector(`.channel[data-id="${channels.channel.id}"]`).scrollIntoView({
+  const currentChannel = document.querySelector(`.channel[data-id="${channels.channel.id}"] .channel-header`);
+  currentChannel.scrollIntoView({
     behavior: "instant",
     block: "center",
     container: "nearest"
   });
+  const guide = document.getElementById('guide')
+  guide.tabIndex = -1;
+  currentChannel.tabIndex = 0
+  currentChannel.focus();
+  guide.addEventListener('keydown', processInput);
 }
 
 function renderSelectedProgramme(channel, programme) {
@@ -174,4 +190,46 @@ function changeChannel(channel) {
   videoElement.src = channel.stream;
   streamElement.append(videoElement);
   videoElement.play();
+}
+
+function processInput(event) {
+  const thisSelector = ':is(.channel-header,.programme)[tabindex="0"]';
+  let nextElement;
+
+  switch (event.key) {
+    case "ArrowUp":
+    case "ArrowDown":
+    case "ArrowRight":
+    case "ArrowLeft":
+      event.preventDefault();
+  }
+
+  switch (event.key) {
+    case "Enter":
+      document.querySelector(thisSelector).click();
+    case "PageUp":
+      channels.channelUp();
+      break;
+    case "PageDown":
+      channels.channelDown();
+      break;
+    case "ArrowUp":
+      break;
+    case "ArrowDown":
+      break;
+    case "ArrowRight":
+      nextElement = document.querySelector(`${thisSelector} + .programme`) ??
+        document.querySelector(`${thisSelector} + * .programme`);
+      break;
+    case "ArrowLeft":
+      nextElement = document.querySelector(`:has(+ ${thisSelector})`) ??
+        document.querySelector(`.channel-header:has(+ .programme-list > ${thisSelector})`);
+      break;
+  }
+
+  if (nextElement) {
+    document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
+    nextElement.tabIndex = 0;
+    nextElement.focus();
+  }
 }

@@ -132,26 +132,29 @@ header {
 }
 
 .channel-header img {
-  filter: drop-shadow(1px 1px 2px var(--clr-neutral-0));
+  filter: drop-shadow(-1px -1px 1px var(--clr-neutral-0))
+    drop-shadow(2px -1px 1px var(--clr-neutral-0))
+    drop-shadow(-1px 2px 1px var(--clr-neutral-0))
+    drop-shadow(2px 2px 1px var(--clr-neutral-0));
 }
 
 .channel .channel-header {
   cursor: pointer;
 }
 
-.channel .channel-header:is(:active, :focus-visible, :hover) > * {
+.channel .channel-header:is(:active, :focus-visible, :hover) {
   color: var(--clr-neutral-0);
-  z-index: 1;
+  outline: none;
 }
 
 .channel .channel-header:is(:active, :focus-visible, :hover)::after {
   background-color: var(--clr-neutral-9);
+  border-radius: 0 1rem 1rem 0;
   color: var(--clr-neutral-0);
   content: "";
-  position: absolute;
   inset: 0;
-  border-radius: 0 1rem 1rem 0;
-  z-index: 0;
+  position: absolute;
+  z-index: -1;
 }
 
 .channel-header h2 {

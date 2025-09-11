@@ -105,6 +105,11 @@ export class Channels {
   async #writeM3U() {
     // get m3u
     const channels = await fetch(this.settings['m3u-url'])
+      .catch(_ => {
+        const searchParams = new URLSearchParams();
+        searchParams.append('m3u-url', 'Failed to fetch URL');
+        window.location.href = `./settings/index.html?${searchParams.toString()}`;
+      })
       .then(response => response.text())
       .then(text => this.#parseM3U(text));
 

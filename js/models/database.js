@@ -7,7 +7,7 @@ export class Database {
     database.db = await new Promise((res, rej) => {
       const request = indexedDB.open("database");
 
-      request.onupgradeneeded = e => {
+      request.onupgradeneeded = async e => {
         const db = e.target.result;
 
         const channelStore = db.createObjectStore("channel", { keyPath: "id" });
@@ -34,8 +34,6 @@ export class Database {
 
         const categoryStore = db.createObjectStore("category", { keyPath: "id", autoIncrement: true });
         categoryStore.createIndex("name", "name", { unique: true });
-
-        resolve(db);
       };
 
       request.onsuccess = e => res(e.target.result);
