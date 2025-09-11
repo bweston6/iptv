@@ -96,6 +96,8 @@ header {
   overflow-y: auto;
   padding: 0;
   scrollbar-width: none;
+  scroll-padding-block-start: 2em;
+  scroll-padding-inline-start: 50ch;
 }
 
 #guide::-webkit-scrollbar {
@@ -114,7 +116,7 @@ header {
   grid-template-columns: 25ch auto;
 }
 
-.channel-header {
+#guide :is([role="rowheader"], [role="columnheader"]) {
   align-items: center;
   background-image: linear-gradient(
     90deg,
@@ -132,25 +134,24 @@ header {
 }
 
 .channel-header img {
-  filter: drop-shadow(-1px -1px 1px var(--clr-neutral-0))
-    drop-shadow(2px -1px 1px var(--clr-neutral-0))
-    drop-shadow(-1px 2px 1px var(--clr-neutral-0))
-    drop-shadow(2px 2px 1px var(--clr-neutral-0));
+  filter: drop-shadow(-1px -1px 2px var(--clr-neutral-0t))
+    drop-shadow(1px -1px 2px var(--clr-neutral-0t))
+    drop-shadow(-1px 1px 2px var(--clr-neutral-0t))
+    drop-shadow(1px 1px 2px var(--clr-neutral-0t));
 }
 
 .channel .channel-header {
   cursor: pointer;
 }
 
-.channel .channel-header:is(:active, :focus-visible, :hover) {
+.channel .channel-header:is(:focus-visible, :hover) {
   color: var(--clr-neutral-0);
   outline: none;
 }
 
-.channel .channel-header:is(:active, :focus-visible, :hover)::after {
+.channel .channel-header:is(:focus-visible, :hover)::after {
   background-color: var(--clr-neutral-9);
   border-radius: 0 1rem 1rem 0;
-  color: var(--clr-neutral-0);
   content: "";
   inset: 0;
   position: absolute;
@@ -173,6 +174,11 @@ header {
   white-space: nowrap;
 }
 
+#guide :is(.programme, .channel-header) {
+  scroll-margin-block-start: 2em;
+  scroll-margin-inline-start: 50ch;
+}
+
 #guide .programme {
   background-color: var(--clr-neutral-3);
   border-radius: 1rem;
@@ -183,7 +189,7 @@ header {
   text-overflow: ellipsis;
 }
 
-#guide .programme:is(:active, :hover, :focus-visible) {
+#guide .programme:is(:focus-visible, :hover) {
   background-color: var(--clr-neutral-9);
   color: var(--clr-neutral-0);
 }

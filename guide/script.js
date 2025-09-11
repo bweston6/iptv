@@ -32,6 +32,10 @@ async function init() {
   }
   timeList.append(timeListItem);
 
+  const observerOptions = {
+    root: document.querySelector('#guide'),
+    rootMargin: "64px",
+  };
   const channelObserver = new IntersectionObserver(entries => {
     for (const entry of entries) {
       if (!entry.isIntersecting) {
@@ -50,7 +54,7 @@ async function init() {
           const programmes = request.target.result
             .filter(programme => {
               return programme.stop > currentTime &&
-                programme.start <= new Date(currentTime).setHours(currentTime.getHours() + 24)
+                programme.start <= new Date(currentTime).setHours(currentTime.getHours() + 12)
             })
             .sort((a, b) => a.start - b.start)
 
@@ -92,7 +96,7 @@ async function init() {
           }
         }
     }
-  });
+  }, observerOptions);
 
   channels.channels.forEach((channel) => {
     const channelElement = document.createElement('li');
@@ -193,6 +197,8 @@ function changeChannel(channel) {
 }
 
 function processInput(event) {
+  event.preventDefault();
+
   const thisSelector = ':is(.channel-header,.programme)[tabindex="0"]';
   let nextElement;
 
@@ -201,12 +207,12 @@ function processInput(event) {
     case "ArrowDown":
     case "ArrowRight":
     case "ArrowLeft":
-      event.preventDefault();
   }
 
   switch (event.key) {
     case "Enter":
-      document.querySelector(thisSelector).click();
+      document.activeElement.click();
+      break;
     case "PageUp":
       channels.channelUp();
       break;
@@ -214,8 +220,22 @@ function processInput(event) {
       channels.channelDown();
       break;
     case "ArrowUp":
+      if (document.activeElement.classList.contains('channel-header')) {
+        nextElement = document.activeElement.closest('.channel')?.previousElementSibling.querySelector('.channel-header');
+      } else {
+        const depth = getDepth(document.activeElement);
+        const nextParent = document.activeElement.closest('.channel')?.previousElementSibling.querySelector('.programme-list');
+        nextElement = getElementByDepth(depth, nextParent);
+      }
       break;
     case "ArrowDown":
+      if (document.activeElement.classList.contains('channel-header')) {
+        nextElement = document.activeElement.closest('.channel')?.nextElementSibling.querySelector('.channel-header');
+      } else {
+        const depth = getDepth(document.activeElement);
+        const nextParent = document.activeElement.closest('.channel')?.nextElementSibling.querySelector('.programme-list');
+        nextElement = getElementByDepth(depth, nextParent);
+      }
       break;
     case "ArrowRight":
       nextElement = document.querySelector(`${thisSelector} + .programme`) ??
@@ -232,4 +252,38 @@ function processInput(event) {
     nextElement.tabIndex = 0;
     nextElement.focus();
   }
+}
+
+/** Return half the element's width plus the width of all previous siblings 
+ */
+function getDepth(element) {
+  let depth = element.offsetWidth / 2;
+  while (element = element.previousElementSibling) {
+    depth += element.offsetWidth;
+  }
+  return depth;
+}
+
+/** Return the element whose centre lies "depth" pixels into the parent
+ *
+ * Will return early if there are not enough children to satisfy the depth.
+ */
+function getElementByDepth(depth, parent) {
+  let element = parent.firstElementChild;
+  let lastElementCentre = 0;
+  let lastElementEnd = 0;
+
+  for (const child of parent.children) {
+    const elementCentre = lastElementEnd + child.offsetWidth / 2;
+    const elementEnd = lastElementEnd + child.offsetWidth;
+
+    if (Math.abs(depth - elementCentre) > Math.abs(depth - lastElementCentre)) {
+      break;
+    }
+
+    element = child;
+    lastElementCentre = elementCentre
+    lastElementEnd = elementEnd;
+  }
+  return element;
 }
