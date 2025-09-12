@@ -82,16 +82,19 @@ async function init() {
             programmeElement.dataset.id = programme.id;
 
             programmeElement.addEventListener('click', (e) => {
+              if (programmeElement.tabIndex !== 0) {
+                document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
+                programmeElement.tabIndex = 0;
+              }
+
               if (
                 programme.start <= currentTime &&
                 programme.stop > currentTime
               ) {
                 channels.channel = e.target.closest('.channel')?.dataset.number;
+              } else {
+                renderSelectedProgramme(programme.channelId, programme.id);
               }
-              renderSelectedProgramme(programme.channelId, programme.id);
-
-              document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
-              e.target.tabIndex = 0;
             });
 
             programmeList.append(programmeElement);
@@ -114,13 +117,10 @@ async function init() {
       const channel = e.target.closest('.channel')
       channels.channel = Number(channel.dataset.number);
 
-      renderSelectedProgramme(
-        channel.dataset.id,
-        channel.querySelector('.programme')?.dataset.id
-      );
-
-      document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
-      e.target.tabIndex = 0;
+      if (channelHeader.tabIndex !== 0) {
+        document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
+        channelHeader.tabIndex = 0;
+      }
     });
     const channelIcon = document.createElement('img');
     channelIcon.alt = "";
@@ -165,6 +165,13 @@ function renderSelectedProgramme(channelId, programmeId) {
       document.querySelector('#channel-name img').src = channel.icon;
     }
 
+  const selectedProgrammeElement = document.getElementById('selected-programme');
+  if (!programmeId) {
+    selectedProgrammeElement.style.display = "none";
+    return;
+  }
+  selectedProgrammeElement.style.removeProperty('display');
+
   db.transaction('programme')
     .objectStore('programme')
     .get(Number(programmeId))
@@ -174,9 +181,6 @@ function renderSelectedProgramme(channelId, programmeId) {
       document.getElementById('programme-description').textContent = programme.description;
       document.getElementById('programme-start').textContent = programme.start.toLocaleTimeString(navigator.language, { timeStyle: "short" })
       document.getElementById('programme-stop').textContent = programme.stop.toLocaleTimeString(navigator.language, { timeStyle: "short" })
-      const progress = document.getElementById('programme-progress')
-      progress.max = programme.stop - programme.start;
-      progress.value = currentTime - programme.start;
     }
 }
 
@@ -228,20 +232,21 @@ function changeChannel(channel) {
     .onsuccess = request => {
       const currentTime = new Date();
       const programmes = request.target.result;
-      programmes.forEach(programme => {
+      for (const programme of programmes) {
         if (
           programme.start <= currentTime &&
           programme.stop > currentTime
         ) {
           renderSelectedProgramme(channel.id, programme.id);
+          break;
         }
-      });
+      }
     };
 
   if (document.querySelector('[tabindex="0"]')?.closest('.channel')?.dataset.id !== channel.id) {
-    document.querySelectorAll('[tabindex="0"]').forEach(element => element.removeAttribute('tabindex'));
     const channelHeader = document.querySelector(`.channel[data-id="${channel.id}"] .channel-header`)
-    if (channelHeader) {
+    if (channelHeader && channelHeader.tabIndex !== 0) {
+      document.querySelectorAll('[tabindex="0"]').forEach(element => element.removeAttribute('tabindex'));
       channelHeader.tabIndex = 0;
       channelHeader.focus();
     }
