@@ -15,8 +15,22 @@
   </head>
   <body>
     <div class="hud normally-hidden show-on-mousemove">
-      <h1><span id="channel-number"></span> <span id="channel-name"></span></h1>
-      <span id="channel-icon"></span>
+      <span class="channel">
+        <img id="channel-icon" class="icon" alt="" />
+        <span class="baseline">
+          <span id="channel-number"></span>&nbsp;
+          <h1><span id="channel-name"></span></h1>
+        </span>
+      </span>
+      <span id="programme"></span>
+      <div class="programme-info"></div>
+      <template id="programme-template">
+        <span id="programme">
+          <h2><span id="programme-title"></span></h2>
+          <span id="programme-start"></span>–<span id="programme-stop"></span>
+          <progress id="programme-progress"></progress>
+        </span>
+      </template>
     </div>
     <div id="stream"></div>
     <div

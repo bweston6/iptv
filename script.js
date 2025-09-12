@@ -97,7 +97,7 @@ let channelString = "";
 let channelTimeoutId;
 function typeChannel(character) {
   channelString += character;
-  Array.from(document.getElementById('channel-icon').children).forEach(child => child.remove());
+  document.getElementById('channel-icon').src = "";
   document.getElementById('channel-number').textContent = channelString;
   document.getElementById('channel-name').textContent = "";
   document.querySelector('.hud').getAnimations().forEach((animation) => {
@@ -123,14 +123,35 @@ function colorButton(keyCode) {
 }
 
 function changeChannel(channel) {
-  const channelIconElement = document.getElementById('channel-icon');
-  Array.from(channelIconElement.children).forEach(child => child.remove());
   if (channel.icon) {
-    const imgElement = document.createElement('img');
-    imgElement.src = channel.icon;
-    imgElement.alt = "";
-    channelIconElement.appendChild(imgElement);
+    document.getElementById('channel-icon').src = channel.icon;
   }
+
+  database.db.transaction(["programme"])
+    .objectStore("programme")
+    .index("channelId")
+    .getAll(channel.id)
+    .onsuccess = (request) => {
+      const currentTime = new Date();
+      const programmes = request.target.result
+      programmes.forEach(programme => {
+        if (
+          programme.start <= currentTime &&
+          programme.stop > currentTime
+        ) {
+          const programmeTemplate = document.getElementById('programme-template');
+          const programmeSpan = programmeTemplate.content.cloneNode(true);
+          programmeSpan.getElementById('programme-title').textContent = programme.title
+          programmeSpan.getElementById('programme-start').textContent = programme.start.toLocaleTimeString(navigator.language, { timeStyle: "short" })
+          programmeSpan.getElementById('programme-stop').textContent = programme.stop.toLocaleTimeString(navigator.language, { timeStyle: "short" })
+          const progress = programmeSpan.getElementById('programme-progress')
+          progress.max = programme.stop - programme.start;
+          progress.value = currentTime - programme.start;
+
+          document.getElementById('programme').replaceWith(programmeSpan);
+        }
+      })
+    };
 
   document.getElementById('channel-number').textContent = channel.number;
   document.getElementById('channel-name').textContent = channel.name;

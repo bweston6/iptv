@@ -11,9 +11,10 @@ if (document.readyState === "loading") {
 }
 
 let channels;
+let db;
 
 async function init() {
-  const db = (await Database.init()).db;
+  db = (await Database.init()).db;
   channels = await Channels.init(settings, db);
 
   changeChannel(channels.channel);
@@ -78,19 +79,20 @@ async function init() {
             programmeElement.classList.add('programme');
             programmeElement.textContent = programme.title;
             programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
+            programmeElement.dataset.id = programme.id;
 
             programmeElement.addEventListener('click', (e) => {
+              if (
+                programme.start <= currentTime &&
+                programme.stop > currentTime
+              ) {
+                channels.channel = e.target.closest('.channel')?.dataset.number;
+              }
+              renderSelectedProgramme(programme.channelId, programme.id);
+
               document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
               e.target.tabIndex = 0;
-              e.target.focus();
-              renderSelectedProgramme(channels.channels.find(channel => channel.id === programme.channelId), programme)
             });
-            if (channels.channel.id === programme.channelId &&
-              programme.start <= currentTime &&
-              programme.stop > currentTime
-            ) {
-              renderSelectedProgramme(channels.channel, programme);
-            }
 
             programmeList.append(programmeElement);
           }
@@ -109,11 +111,16 @@ async function init() {
     channelHeader.classList.add('channel-header');
     channelHeader.role = "rowheader";
     channelHeader.addEventListener('click', e => {
+      const channel = e.target.closest('.channel')
+      channels.channel = Number(channel.dataset.number);
+
+      renderSelectedProgramme(
+        channel.dataset.id,
+        channel.querySelector('.programme')?.dataset.id
+      );
+
       document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
       e.target.tabIndex = 0;
-      e.target.focus();
-      const number = e.target.closest('.channel').dataset.number;
-      channels.channel = Number(number);
     });
     const channelIcon = document.createElement('img');
     channelIcon.alt = "";
@@ -121,7 +128,7 @@ async function init() {
     channelIcon.loading = "lazy";
     channelIcon.src = channel.icon;
     const channelName = document.createElement('h2');
-    channelName.textContent = channel.name;
+    channelName.textContent = `${channel.number} ${channel.name}`;
 
     channelHeader.append(channelIcon);
     channelHeader.append(channelName);
@@ -148,11 +155,29 @@ async function init() {
   guide.addEventListener('keydown', processInput);
 }
 
-function renderSelectedProgramme(channel, programme) {
-  document.querySelector('#channel-name h1').textContent = channel.name;
-  document.querySelector('#channel-name img').src = channel.icon;
-  document.getElementById('programme-name').textContent = programme.title;
-  document.getElementById('programme-description').textContent = programme.description;
+function renderSelectedProgramme(channelId, programmeId) {
+  db.transaction('channel')
+    .objectStore('channel')
+    .get(channelId)
+    .onsuccess = request => {
+      const channel = request.target.result;
+      document.querySelector('#channel-name h1').textContent = `${channel.number} ${channel.name}`;
+      document.querySelector('#channel-name img').src = channel.icon;
+    }
+
+  db.transaction('programme')
+    .objectStore('programme')
+    .get(Number(programmeId))
+    .onsuccess = request => {
+      const programme = request.target.result;
+      document.getElementById('programme-name').textContent = programme.title;
+      document.getElementById('programme-description').textContent = programme.description;
+      document.getElementById('programme-start').textContent = programme.start.toLocaleTimeString(navigator.language, { timeStyle: "short" })
+      document.getElementById('programme-stop').textContent = programme.stop.toLocaleTimeString(navigator.language, { timeStyle: "short" })
+      const progress = document.getElementById('programme-progress')
+      progress.max = programme.stop - programme.start;
+      progress.value = currentTime - programme.start;
+    }
 }
 
 function millisToWidth(millis) {
@@ -194,6 +219,33 @@ function changeChannel(channel) {
   videoElement.src = channel.stream;
   streamElement.append(videoElement);
   videoElement.play();
+  videoElement.addEventListener('click', _ => history.back());
+
+  db.transaction('programme')
+    .objectStore('programme')
+    .index('channelId')
+    .getAll(channel.id)
+    .onsuccess = request => {
+      const currentTime = new Date();
+      const programmes = request.target.result;
+      programmes.forEach(programme => {
+        if (
+          programme.start <= currentTime &&
+          programme.stop > currentTime
+        ) {
+          renderSelectedProgramme(channel.id, programme.id);
+        }
+      });
+    };
+
+  if (document.querySelector('[tabindex="0"]')?.closest('.channel')?.dataset.id !== channel.id) {
+    document.querySelectorAll('[tabindex="0"]').forEach(element => element.removeAttribute('tabindex'));
+    const channelHeader = document.querySelector(`.channel[data-id="${channel.id}"] .channel-header`)
+    if (channelHeader) {
+      channelHeader.tabIndex = 0;
+      channelHeader.focus();
+    }
+  }
 }
 
 function processInput(event) {
@@ -207,6 +259,9 @@ function processInput(event) {
     case "ArrowDown":
     case "ArrowRight":
     case "ArrowLeft":
+    case "Enter":
+      document.querySelector('[tabindex="0"]').focus();
+      break;
   }
 
   switch (event.key) {
@@ -222,6 +277,8 @@ function processInput(event) {
     case "ArrowUp":
       if (document.activeElement.classList.contains('channel-header')) {
         nextElement = document.activeElement.closest('.channel')?.previousElementSibling.querySelector('.channel-header');
+      } else if (document.activeElement === document.activeElement.closest('.programme-list')?.firstElementChild) {
+        nextElement = document.activeElement.closest('.channel')?.previousElementSibling.querySelector('.programme-list')?.firstElementChild;
       } else {
         const depth = getDepth(document.activeElement);
         const nextParent = document.activeElement.closest('.channel')?.previousElementSibling.querySelector('.programme-list');
@@ -231,6 +288,8 @@ function processInput(event) {
     case "ArrowDown":
       if (document.activeElement.classList.contains('channel-header')) {
         nextElement = document.activeElement.closest('.channel')?.nextElementSibling.querySelector('.channel-header');
+      } else if (document.activeElement === document.activeElement.closest('.programme-list')?.firstElementChild) {
+        nextElement = document.activeElement.closest('.channel')?.nextElementSibling.querySelector('.programme-list')?.firstElementChild;
       } else {
         const depth = getDepth(document.activeElement);
         const nextParent = document.activeElement.closest('.channel')?.nextElementSibling.querySelector('.programme-list');
@@ -250,6 +309,11 @@ function processInput(event) {
   if (nextElement) {
     document.querySelectorAll('[tabindex="0"]').forEach(e => e.removeAttribute('tabindex'));
     nextElement.tabIndex = 0;
+    renderSelectedProgramme(
+      nextElement.closest('.channel')?.dataset.id,
+      nextElement.closest('.programme')?.dataset.id ??
+      nextElement.closest('.channel')?.querySelector('.programme')?.dataset.id
+    );
     nextElement.focus();
   }
 }

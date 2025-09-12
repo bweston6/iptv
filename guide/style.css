@@ -42,6 +42,7 @@ header {
 #stream {
   grid-area: preview;
   height: 100%;
+  max-width: 100%;
   width: fit-content;
 }
 
@@ -55,11 +56,17 @@ header {
   background-color: var(--clr-neutral-3);
   border-radius: 1rem;
   height: 100%;
+  max-width: 100%;
+  cursor: pointer;
+}
+#stream video:hover {
+  outline: 0.1em solid var(--clr-neutral-9);
 }
 
 #selected-channel {
   grid-area: selected-channel;
   height: 100%;
+  overflow-y: auto;
 }
 
 #channel-name {
@@ -74,6 +81,10 @@ header {
   margin: 0;
 }
 
+#guide .programme:first-of-type {
+  background-color: var(--clr-neutral-5);
+}
+
 #programme-name {
   font-size: 1.25em;
   margin-block: 0.5em;
@@ -81,8 +92,6 @@ header {
 
 #programme-description {
   margin-block: 0.5em;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 #guide {
@@ -133,13 +142,6 @@ header {
   position: sticky;
 }
 
-.channel-header img {
-  filter: drop-shadow(-1px -1px 2px var(--clr-neutral-0t))
-    drop-shadow(1px -1px 2px var(--clr-neutral-0t))
-    drop-shadow(-1px 1px 2px var(--clr-neutral-0t))
-    drop-shadow(1px 1px 2px var(--clr-neutral-0t));
-}
-
 .channel .channel-header {
   cursor: pointer;
 }
@@ -147,6 +149,9 @@ header {
 .channel .channel-header:is(:focus-visible, :hover) {
   color: var(--clr-neutral-0);
   outline: none;
+}
+.channel-header:is(:focus-visible, :hover) img {
+  filter: saturate(0) brightness(50%);
 }
 
 .channel .channel-header:is(:focus-visible, :hover)::after {
@@ -189,7 +194,15 @@ header {
   text-overflow: ellipsis;
 }
 
-#guide .programme:is(:focus-visible, :hover) {
+#guide .programme-list .programme:is(:focus-visible, :hover) {
   background-color: var(--clr-neutral-9);
   color: var(--clr-neutral-0);
+}
+
+#programme-name {
+  display: inline;
+}
+#selected-programme .left {
+  align-items: baseline;
+  display: flex;
 }

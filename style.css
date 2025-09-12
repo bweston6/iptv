@@ -21,9 +21,38 @@
   padding: 3rem;
   position: absolute;
   z-index: 1;
+  gap: 1rem;
 }
-.hud img {
-  font-size: 2em;
+.hud .channel {
+  align-items: center;
+  display: flex;
+  min-width: max-content;
+  font-size: 1.5em;
+  font-weight: 700;
+}
+
+.hud #programme {
+  text-align: end;
+}
+.baseline {
+  align-items: baseline;
+  display: inline-flex;
+}
+.hud .channel :is(#channel-number, .icon) {
+  font-size: 1.3em;
+}
+.hud h1 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+.hud h2 {
+  font-size: inherit;
+}
+.channel .icon:not([src=""]) {
+  margin-inline-end: 0.5em;
+}
+.hud :is(span, div):empty {
+  display: none;
 }
 
 [aria-role="navigation"] {
