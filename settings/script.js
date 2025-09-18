@@ -1,6 +1,7 @@
+import { Channels } from '../js/models/channels.js';
 import { Database } from '../js/models/database.js';
 import { nextInteractiveElement, previousInteractiveElement } from '../js/helpers/input.js';
-import { settings } from '../js/models/settings.js';
+import { Settings, settings } from '../js/models/settings.js';
 
 let database;
 
@@ -33,17 +34,27 @@ function initForm() {
   const form = document.getElementById('settings-form');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const formData = new FormData(e.target, e.submitter);
+
+    document.querySelectorAll('input').forEach(input => input.disabled = true)
+    document.getElementById('save').value = "Fetching channel data…";
+
     localStorage.clear();
     await database.clearAll();
 
-    const formData = new FormData(e.target, e.submitter);
     for (const [key, value] of formData) {
       if (value) {
         localStorage.setItem(key, value);
       }
     }
 
-    history.back();
+    await Channels.init(new Settings({
+      'm3u-url': localStorage.getItem('m3u-url'),
+      'xmltv-url': localStorage.getItem('xmltv-url')
+    }), database.db);
+
+    window.location.href = "../index.html";
   });
 
   const searchParams = new URLSearchParams(window.location.search);
