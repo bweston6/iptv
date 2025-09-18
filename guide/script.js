@@ -27,7 +27,7 @@ async function init() {
   const timeListItem = document.createElement('li');
   timeListItem.role = "columnheader"
   const duration = nextTime - time;
-  timeListItem.setAttribute('style', `width: ${millisToWidth(duration)}`);
+  timeListItem.setAttribute('style', `width: calc(${millisToWidth(duration)} - 1rem)`);
   if (duration >= 900000) {
     timeListItem.textContent = formatTime(time);
   }
@@ -69,7 +69,7 @@ async function init() {
               nextTime = roundToNext30MinIncrement(time);
               const timeListItem = document.createElement('li');
               timeListItem.role = "columnheader";
-              timeListItem.setAttribute('style', `width: ${millisToWidth(nextTime - time)}`);
+              timeListItem.setAttribute('style', `width: calc(${millisToWidth(nextTime - time)} - 1rem)`);
               timeListItem.textContent = formatTime(time);
               timeList.append(timeListItem);
             }
@@ -78,7 +78,7 @@ async function init() {
             programmeElement.role = "gridcell";
             programmeElement.classList.add('programme');
             programmeElement.textContent = programme.title;
-            programmeElement.setAttribute('style', `width: ${millisToWidth(programme.stop - programme.start)}`);
+            programmeElement.setAttribute('style', `width: calc(${millisToWidth(programme.stop - programme.start)} - 1rem)`);
             programmeElement.dataset.id = programme.id;
 
             programmeElement.addEventListener('click', (e) => {
