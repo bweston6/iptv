@@ -14,8 +14,9 @@ let channels;
 let db;
 
 async function init() {
-  db = (await Database.init()).db;
-  channels = await Channels.init(settings, db);
+  const database = await Database.init();
+  db = database.db;
+  channels = await Channels.init(settings, database);
 
   changeChannel(channels.channel);
   document.addEventListener('changechannel', ({ detail: channel }) => changeChannel(channel));

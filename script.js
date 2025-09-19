@@ -3,38 +3,53 @@ import { Database } from './js/models/database.js';
 import { nextInteractiveElement, previousInteractiveElement } from './js/helpers/input.js';
 import { settings } from './js/models/settings.js';
 
-let channels;
-let database;
+class Controller {
+  channelString = "";
+  channelTimeoutId;
+  channels;
+  database;
+  settings;
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init());
-} else {
-  init();
-}
-
-async function init() {
-  // no bfcache
-  window.addEventListener('unload', function () { });
-  window.addEventListener('beforeunload', function () { });
-
-  // video
-  document.addEventListener('changechannel', ({ detail: channel }) => changeChannel(channel));
-
-  if (!settings['m3u-url']) {
-    window.location.href = './settings/index.html';
-    return;
-  }
-  if (settings['xmltv-url']) {
-    document.querySelector('[aria-label="guide"]').classList.remove('hidden');
+  constructor({ channels, database, settings }) {
+    this.channels = channels;
+    this.database = database;
+    this.settings = settings;
   }
 
-  database = await Database.init();
-  channels = await Channels.init(settings, database.db);
-  initInput();
-}
+  static async init() {
+    // no bfcache
+    window.addEventListener('unload', function () { });
+    window.addEventListener('beforeunload', function () { });
 
-function initInput() {
-  window.addEventListener('keydown', (e) => {
+    Controller.checkSettings(settings);
+
+    const database = await Database.init();
+    const channels = await Channels.init(settings, database);
+
+    const controller = new Controller({ channels, database, settings });
+    controller.addEventListeners();
+    controller.changeChannel(controller.channels.channel);
+
+    return controller;
+  }
+
+  static checkSettings(settings) {
+    if (!settings['m3u-url']) {
+      window.location.href = './settings/index.html';
+      return;
+    }
+    if (settings['xmltv-url']) {
+      document.querySelector('[aria-label="guide"]').classList.remove('hidden');
+    }
+  }
+
+  addEventListeners() {
+    document.addEventListener('changechannel', ({ detail: channel }) => this.changeChannel(channel));
+    window.addEventListener('keydown', e => this.input(e));
+    window.addEventListener('mousemove', e => this.showOnMouseMove(e));
+  }
+
+  input(e) {
     switch (e.key) {
       // animations
       case "ArrowLeft":
@@ -46,11 +61,11 @@ function initInput() {
     switch (e.key) {
       case "ArrowUp":
       case "PageUp":
-        channels.channelUp();
+        this.channels.channelUp();
         break;
       case "ArrowDown":
       case "PageDown":
-        channels.channelDown();
+        this.channels.channelDown();
         break;
       case "ArrowRight":
         nextInteractiveElement(document.activeElement).focus({ 'focusVisible': true });
@@ -68,7 +83,7 @@ function initInput() {
       case "8":
       case "9":
       case "0":
-        typeChannel(e.key);
+        this.typeChannel(e.key);
         break;
     }
     switch (e.keyCode) {
@@ -76,97 +91,104 @@ function initInput() {
       case 404: // yellow
       case 405: // yellow
       case 406: // blue
-        colorButton(e.keyCode);
+        this.colorButton(e.keyCode);
         break;
     }
-  });
+  }
 
-  window.addEventListener('mousemove', showOnMouseMove);
-}
+  showOnMouseMove() {
+    document.querySelectorAll('.show-on-mousemove').forEach((element) => {
+      element.getAnimations().forEach((animation) => {
+        animation.currentTime = 0;
+        animation.play();
+      });
+    });
+  }
 
-function showOnMouseMove() {
-  document.querySelectorAll('.show-on-mousemove').forEach((element) => {
-    element.getAnimations().forEach((animation) => {
+  typeChannel(character) {
+    this.channelString += character;
+    document.getElementById('channel-icon').src = "";
+    document.getElementById('channel-number').textContent = this.channelString;
+    document.getElementById('channel-name').textContent = "";
+    document.querySelector('.hud').getAnimations().forEach((animation) => {
       animation.currentTime = 0;
       animation.play();
     });
-  });
-}
 
-let channelString = "";
-let channelTimeoutId;
-function typeChannel(character) {
-  channelString += character;
-  document.getElementById('channel-icon').src = "";
-  document.getElementById('channel-number').textContent = channelString;
-  document.getElementById('channel-name').textContent = "";
-  document.querySelector('.hud').getAnimations().forEach((animation) => {
-    animation.currentTime = 0;
-    animation.play();
-  });
+    if (this.channelTimeoutId) {
+      clearTimeout(this.channelTimeoutId);
+    }
+    this.channelTimeoutId = setTimeout(() => {
+      const currentChannel = this.channels.channel;
+      this.channels.channel = Number(this.channelString)
 
-  if (channelTimeoutId) {
-    clearTimeout(channelTimeoutId);
-  }
-  channelTimeoutId = setTimeout(() => {
-    channels.channel = Number(channelString)
+      if (currentChannel === this.channels.channel) {
+        this.changeChannel(currentChannel)
+      }
 
-    channelTimeoutId = undefined;
-    channelString = ""
-  }, 1000);
-}
-
-function colorButton(keyCode) {
-  const buttonIndex = keyCode - 403;
-  const buttons = document.querySelectorAll('[aria-role="navigation"] .button');
-  buttons[buttonIndex - (4 - buttons.length)].click();
-}
-
-function changeChannel(channel) {
-  if (channel.icon) {
-    document.getElementById('channel-icon').src = channel.icon;
+      this.channelTimeoutId = undefined;
+      this.channelString = ""
+    }, 1000);
   }
 
-  database.db.transaction(["programme"])
-    .objectStore("programme")
-    .index("channelId")
-    .getAll(channel.id)
-    .onsuccess = (request) => {
-      const currentTime = new Date();
-      const programmes = request.target.result
-      programmes.forEach(programme => {
-        if (
-          programme.start <= currentTime &&
-          programme.stop > currentTime
-        ) {
-          const programmeTemplate = document.getElementById('programme-template');
-          const programmeSpan = programmeTemplate.content.cloneNode(true);
-          programmeSpan.getElementById('programme-title').textContent = programme.title
-          programmeSpan.getElementById('programme-start').textContent = programme.start.toLocaleTimeString(navigator.language, { timeStyle: "short" })
-          programmeSpan.getElementById('programme-stop').textContent = programme.stop.toLocaleTimeString(navigator.language, { timeStyle: "short" })
-          const progress = programmeSpan.getElementById('programme-progress')
-          progress.max = programme.stop - programme.start;
-          progress.value = currentTime - programme.start;
-
-          document.getElementById('programme').replaceWith(programmeSpan);
-        }
-      })
-    };
-
-  document.getElementById('channel-number').textContent = channel.number;
-  document.getElementById('channel-name').textContent = channel.name;
-  document.querySelector('.hud').getAnimations().forEach((animation) => {
-    animation.currentTime = 0;
-    animation.play();
-  });
-
-  const streamLocation = document.getElementById('stream');
-  let videoElement = streamLocation.querySelector('video');
-  if (!videoElement) {
-    videoElement = document.createElement('video');
-    streamLocation.appendChild(videoElement);
+  colorButton(keyCode) {
+    const buttonIndex = keyCode - 403;
+    const buttons = document.querySelectorAll('[aria-role="navigation"] .button');
+    buttons[buttonIndex - (4 - buttons.length)].click();
   }
 
-  videoElement.src = channel.stream;
-  videoElement.play();
+  changeChannel(channel) {
+    if (channel.icon) {
+      document.getElementById('channel-icon').src = channel.icon;
+    }
+
+    this.database.db.transaction(["programme"])
+      .objectStore("programme")
+      .index("channelId")
+      .getAll(channel.id)
+      .onsuccess = (request) => {
+        const currentTime = new Date();
+        const programmes = request.target.result
+        programmes.forEach(programme => {
+          if (
+            programme.start <= currentTime &&
+            programme.stop > currentTime
+          ) {
+            const programmeTemplate = document.getElementById('programme-template');
+            const programmeSpan = programmeTemplate.content.cloneNode(true);
+            programmeSpan.getElementById('programme-title').textContent = programme.title
+            programmeSpan.getElementById('programme-start').textContent = programme.start.toLocaleTimeString(navigator.language, { timeStyle: "short" })
+            programmeSpan.getElementById('programme-stop').textContent = programme.stop.toLocaleTimeString(navigator.language, { timeStyle: "short" })
+            const progress = programmeSpan.getElementById('programme-progress')
+            progress.max = programme.stop - programme.start;
+            progress.value = currentTime - programme.start;
+
+            document.getElementById('programme').replaceWith(programmeSpan);
+          }
+        })
+      };
+
+    document.getElementById('channel-number').textContent = channel.number;
+    document.getElementById('channel-name').textContent = channel.name;
+    document.querySelector('.hud').getAnimations().forEach((animation) => {
+      animation.currentTime = 0;
+      animation.play();
+    });
+
+    const streamLocation = document.getElementById('stream');
+    let videoElement = streamLocation.querySelector('video');
+    if (!videoElement) {
+      videoElement = document.createElement('video');
+      streamLocation.appendChild(videoElement);
+    }
+
+    videoElement.src = channel.stream;
+    videoElement.play();
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", Controller.init());
+} else {
+  Controller.init();
 }

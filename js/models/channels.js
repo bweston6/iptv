@@ -5,13 +5,13 @@ export class Channels {
   #_channel;
   channels;
 
-  constructor(settings, db) {
-    this.db = db;
+  constructor(settings, database) {
+    this.db = database.db;
     this.settings = settings;
   }
 
-  static async init(settings, db) {
-    const channels = new Channels(settings, db);
+  static async init(settings, database) {
+    const channels = new Channels(settings, database);
 
     await channels.#cacheSources();
     await channels.#initChannels();
@@ -108,7 +108,7 @@ export class Channels {
       .catch(_ => {
         const searchParams = new URLSearchParams();
         searchParams.append('m3u-url', 'Failed to fetch URL');
-        window.location.href = `./settings/index.html?${searchParams.toString()}`;
+        window.location.href = `${window.location.origin}/settings/index.html?${searchParams.toString()}`;
       })
       .then(response => response.text())
       .then(text => this.#parseM3U(text));
