@@ -1,0 +1,14 @@
+networks:
+  server:
+    external: true
+services:
+  nginx:
+    container_name: ${ENVIRONMENT}-webos-iptv
+    build: .
+    restart: always
+    environment:
+      - TZ=${TZ}
+    ports:
+      - ${HTTP_PORT}:80
+    networks:
+      - server

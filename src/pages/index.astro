@@ -5,6 +5,92 @@ import { Player } from '../scripts/player.js';
 
 Player.init();
 ---
+<style>
+.hud {
+  align-items: center;
+  background-color: var(--clr-neutral-3t);
+  color: var(--clr-neutral-9);
+  display: flex;
+  inset-block-start: 0;
+  inset-inline: 0;
+  justify-content: space-between;
+  padding: 3rem;
+  position: absolute;
+  z-index: 1;
+  gap: 1rem;
+
+  .channel {
+    align-items: center;
+    display: flex;
+    min-width: max-content;
+    font-size: 1.5em;
+    font-weight: 700;
+    #channel-number, .icon {
+      font-size: 1.3em;
+    }
+    .icon:not([src=""]) {
+      margin-inline-end: 0.5em;
+    }
+  }
+
+  &:is(span, div):empty {
+    display: none;
+  }
+
+  #programme {
+    text-align: end;
+  }
+
+  h1 {
+    font-weight: inherit;
+  }
+
+  h1, h2 {
+    font-size: inherit;
+  }
+}
+
+.baseline {
+  align-items: baseline;
+  display: inline-flex;
+}
+
+[aria-role="navigation"] {
+  color: var(--clr-neutral-9);
+  display: flex;
+  font-size: 3rem;
+  inset-block-end: 0;
+  inset-inline: 0;
+  justify-content: space-between;
+  padding: 3rem;
+  position: absolute;
+  z-index: 1;
+
+  .button {
+    align-items: center;
+    display: flex-inline;
+    flex-direction: column;
+    gap: 0.2em;
+    &::after {
+      border-block-end: 0.15em solid var(--_btn-colour);
+      content: "";
+      width: 0.5em;
+    }
+    &:nth-last-child(1) {
+      --_btn-colour: var(--clr-blue);
+    }
+    &:nth-last-child(2) {
+      --_btn-colour: var(--clr-yellow);
+    }
+    &:nth-last-child(3) {
+      --_btn-colour: var(--clr-green);
+    }
+    &:nth-last-child(4) {
+      --_btn-colour: var(--clr-red);
+    }
+  }
+}
+</style>
 <BaseLayout title="IPTV">
   <div class="hud normally-hidden show-on-mousemove">
     <span class="channel">
@@ -24,7 +110,6 @@ Player.init();
       </span>
     </template>
   </div>
-  <a href="/guide">Guide</a>
   <VideoStream />
   <div
     aria-role="navigation"

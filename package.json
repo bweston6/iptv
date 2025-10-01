@@ -6,11 +6,12 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro",
-    "package": "npm run build && ares-package ./dist --no-minify",
-    "install": "npm run package && ares-install uk.bweston.iptv_0.0.1_all.ipk"
+    "astro": "astro"
   },
   "dependencies": {
     "astro": "^5.14.1"
+  },
+  "devDependencies": {
+    "lightningcss": "^1.30.2"
   }
 }

@@ -1,10 +1,13 @@
 ---
 ---
-<div id="stream">
-  <video 
-    src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-    muted
-    autoplay
-    transition:persist
-  ></video>
-</div>
+<style>
+#stream{
+  background-color: var(--clr-neutral-0);
+  inset: 0 0;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+</style>
+<video id="stream" transition:persist ></video>
