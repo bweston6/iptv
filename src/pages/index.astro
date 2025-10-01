@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import VideoStream from '../components/VideoStream.astro';
+import { Player } from '../scripts/player.js';
+
+Player.init();
+---
+<BaseLayout title="IPTV">
+  <div class="hud normally-hidden show-on-mousemove">
+    <span class="channel">
+      <img id="channel-icon" class="icon" alt="" />
+      <span class="baseline">
+        <span id="channel-number"></span>&nbsp;
+        <h1><span id="channel-name"></span></h1>
+      </span>
+    </span>
+    <span id="programme"></span>
+    <div class="programme-info"></div>
+    <template id="programme-template">
+      <span id="programme">
+        <h2><span id="programme-title"></span></h2>
+        <span id="programme-start"></span>–<span id="programme-stop"></span>
+        <progress id="programme-progress"></progress>
+      </span>
+    </template>
+  </div>
+  <a href="./guide/index.html">Guide</a>
+  <VideoStream />
+  <div
+    aria-role="navigation"
+    arial-label="main"
+    class="normally-hidden show-on-mousemove"
+  >
+    <div class="left"></div>
+    <div class="right">
+      <a href="./settings/index.html" class="button" aria-label="settings">
+        <img class="icon" src="assets/svg/settings.svg" alt="" />
+      </a>
+      <a href="./guide/index.html" class="button hidden" aria-label="guide">
+        <img class="icon" src="assets/svg/dvr.svg" alt="" />
+      </a>
+    </div>
+  </div>
+</BaseLayout>
