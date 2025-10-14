@@ -12,6 +12,11 @@
   max-width: 100vw;
   width: 100%;
 }
+#stream .stream-error {
+  position: absolute;
+  text-align: center;
+  width: 100%;
+}
 
 .hud {
   align-items: center;

@@ -89,6 +89,18 @@ function typeChannel({ number }) {
 }
 
 function changeChannel({ channel, programme }) {
+  const streamError = document.querySelector('.stream-error');
+  streamError.classList.add('hidden');
+  const videoElement = document.querySelector('#stream video');
+  videoElement.src = channel.stream;
+  videoElement.play()
+    .catch(_ => {
+      // if we are still on the same stream
+      if (videoElement.src == channel.stream) {
+        streamError.classList.remove('hidden')
+      }
+    });
+
   document.getElementById('channel-icon').src = channel?.icon;
   document.getElementById('channel-name').textContent = channel.name;
   document.getElementById('channel-number').textContent = channel.number;
@@ -110,14 +122,4 @@ function changeChannel({ channel, programme }) {
     animation.currentTime = 0;
     animation.play();
   });
-
-  const streamLocation = document.getElementById('stream');
-  let videoElement = streamLocation.querySelector('video');
-  if (!videoElement) {
-    videoElement = document.createElement('video');
-    streamLocation.appendChild(videoElement);
-  }
-  console.log(channel.stream);
-  videoElement.src = channel.stream;
-  videoElement.play();
 }
