@@ -109,6 +109,10 @@ export class Channels {
   }
 
   async cacheSources(cache = true) {
+    const cacheDuration = 1; // day
+    const cacheExpiry = new Date();
+    cacheExpiry.setDate(cacheExpiry.getDate() - cacheDuration);
+
     let transaction = this.db.transaction(["channel", "programme"], "readwrite");
     let channelStore = transaction.objectStore("channel");
     let programmeStore = transaction.objectStore("programme");
@@ -125,12 +129,20 @@ export class Channels {
     const programmeCount = await new Promise(res => {
       programmeStore.count().onsuccess = (request) => res(request.target.result);
     });
-    if (channelCount !== 0 || programmeCount !== 0) {
-      return;
-    }
+    const lastFetch = JSON.parse(localStorage.getItem('last-fetch'));
 
-    await this.#writeM3U();
-    await this.#writeXML();
+    // only block if there is no data
+
+    if (channelCount == 0 && programmeCount == 0) {
+      await this.#writeM3U()
+        .then(() => this.#writeXML())
+        .then(() => localStorage.setItem('last-fetch', JSON.stringify(new Date())));
+    } else if (cacheExpiry > lastFetch) {
+      console.debug('cache expired');
+      this.#writeM3U()
+        .then(() => this.#writeXML())
+        .then(() => localStorage.setItem('last-fetch', JSON.stringify(new Date())));
+    }
   }
 
   async #writeM3U() {
