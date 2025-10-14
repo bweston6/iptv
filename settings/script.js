@@ -49,10 +49,7 @@ function initForm() {
       }
     }
 
-    await Channels.init(new Settings({
-      'm3u-url': localStorage.getItem('m3u-url'),
-      'xmltv-url': localStorage.getItem('xmltv-url')
-    }), database);
+    await Channels.init(false);
 
     window.location.href = "../index.html";
   });

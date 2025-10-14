@@ -1,10 +1,10 @@
 export class Database {
-  db;
+  constructor(db) {
+    this.db = db;
+  }
 
   static async init() {
-    const database = new Database();
-
-    database.db = await new Promise((res, rej) => {
+    const db = await new Promise((res, rej) => {
       const request = indexedDB.open("database");
 
       request.onupgradeneeded = async e => {
@@ -40,7 +40,7 @@ export class Database {
       request.onerror = e => rej(e.target.error);
     });
 
-    return database;
+    return new Database(db);
   }
 
   clearAll() {

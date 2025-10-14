@@ -1,21 +1,29 @@
 import { Channel } from "../objects/channel.js";
+import { Database } from "./database.js";
 import { Programme } from "../objects/programme.js";
+import { settings } from "./settings.js";
 
 export class Channels {
   #_channel;
   channels;
 
-  constructor(settings, database) {
-    this.db = database.db;
-    this.settings = settings;
+  constructor(db) {
+    this.db = db
   }
 
-  static async init(settings, database) {
-    const channels = new Channels(settings, database);
+  static async init(cache = true) {
+    const database = await Database.init();
+    const channels = new Channels(database.db);
 
-    await channels.#cacheSources();
-    await channels.#initChannels();
-
+    await channels.cacheSources(cache);
+    channels.channels = await new Promise(res => {
+      database.db
+        .transaction(["channel"])
+        .objectStore("channel")
+        .index("number")
+        .getAll()
+        .onsuccess = (request) => res(request.target.result);
+    });
     channels.#channel = channels.channels[channels.#channelIndex];
 
     return channels;
@@ -23,7 +31,9 @@ export class Channels {
 
   set #channel(channel) {
     if (channel.id !== this.#channel?.id) {
-      document.dispatchEvent(new CustomEvent('changechannel', { detail: channel }));
+      document.dispatchEvent(new CustomEvent('changechannel',
+        { detail: { channel, programme: this.getCurrentProgramme(channel) } }
+      ));
     }
 
     this.#_channel = channel;
@@ -77,7 +87,28 @@ export class Channels {
     localStorage.setItem('channel-index', JSON.stringify(index));
   }
 
-  async #cacheSources(cache = true) {
+  getCurrentProgramme(channel) {
+    return new Promise(res =>
+      this.db.transaction('programme')
+        .objectStore('programme')
+        .index('channelId')
+        .getAll(channel.id)
+        .onsuccess = request => {
+          const currentTime = new Date();
+          const programmes = request.target.result;
+          for (const programme of programmes) {
+            if (
+              programme.start <= currentTime &&
+              programme.stop > currentTime
+            ) {
+              res(programme);
+              break;
+            }
+          }
+        });
+  }
+
+  async cacheSources(cache = true) {
     let transaction = this.db.transaction(["channel", "programme"], "readwrite");
     let channelStore = transaction.objectStore("channel");
     let programmeStore = transaction.objectStore("programme");
@@ -104,7 +135,7 @@ export class Channels {
 
   async #writeM3U() {
     // get m3u
-    const channels = await fetch(this.settings['m3u-url'])
+    const channels = await fetch(settings['m3u-url'])
       .catch(_ => {
         const searchParams = new URLSearchParams();
         searchParams.append('m3u-url', 'Failed to fetch URL');
@@ -126,12 +157,12 @@ export class Channels {
   }
 
   async #writeXML() {
-    if (!this.settings['xmltv-url']) {
+    if (!settings['xmltv-url']) {
       return;
     }
 
     // get xmltv
-    const xmltv = await fetch(this.settings['xmltv-url'])
+    const xmltv = await fetch(settings['xmltv-url'])
       .then(response => response.text())
       .then(text => new DOMParser().parseFromString(text, "text/xml"));
 
@@ -154,79 +185,6 @@ export class Channels {
 
     transaction.commit();
     return new Promise(res => { transaction.oncomplete = res });
-  }
-
-  async #initChannels() {
-    this.channels = await new Promise(res => {
-      this.db
-        .transaction(["channel"])
-        .objectStore("channel")
-        .index("number")
-        .getAll()
-        .onsuccess = (request) => res(request.target.result);
-    });
-
-    return this.channels;
-  }
-
-  async #initGuide(cache = true) {
-    if (!cache) {
-      this.db.transaction(["programme"], "readwrite")
-        .objectStore("programme")
-        .clear();
-    }
-
-    const programmeCount = await new Promise(res => {
-      this.db.transaction(["programme"])
-        .objectStore("programme")
-        .count()
-        .onsuccess = (request) => res(request.target.result);
-    });
-
-    if (programmeCount) {
-      for (const channel of this.channels) {
-        channel.programmes = await new Promise(res => {
-          this.db
-            .transaction(["programme"])
-            .objectStore("programme")
-            .index("channelId")
-            .getAll(channel.id)
-            .onsuccess = (request) => res(request.target.result);
-        });
-      }
-
-      return this.channels;
-    }
-
-    const xmltv = await fetch(this.settings['xmltv-url'])
-      .then((response) => response.text())
-      .then((text) => {
-        const parser = new DOMParser();
-        return parser.parseFromString(text, "text/xml");
-      });
-
-    const transaction = this.db.transaction(["channel", "programme"], "readwrite")
-    const channelStore = transaction.objectStore("channel");
-    const programmeStore = transaction.objectStore("programme");
-
-    for (const channel of this.channels) {
-      channel.icon = xmltv.querySelector(`channel[id='${channel.id}'] > icon`)?.getAttribute('src');
-      await new Promise(res => {
-        channelStore.put(channel)
-          .onsuccess = res;
-      });
-
-      channel.programmes = Array.from(xmltv.querySelectorAll(`[channel='${channel.id}']`))
-        .map(this.#parseXmlProgramme);
-      for (const programme of channel.programmes) {
-        await new Promise(res => {
-          programmeStore.add(programme)
-            .onsuccess = res;
-        });
-      }
-    }
-
-    return this.channels;
   }
 
   #parseM3U(m3u) {

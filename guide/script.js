@@ -14,12 +14,11 @@ let channels;
 let db;
 
 async function init() {
+  document.addEventListener('changechannel', ({ detail }) => changeChannel(detail));
+
   const database = await Database.init();
   db = database.db;
   channels = await Channels.init(settings, database);
-
-  changeChannel(channels.channel);
-  document.addEventListener('changechannel', ({ detail: channel }) => changeChannel(channel));
 
   const timeList = document.querySelector('#time ol');
 
@@ -216,7 +215,7 @@ function roundToNext30MinIncrement(time) {
   return nextTime;
 }
 
-function changeChannel(channel) {
+async function changeChannel({ channel, programme }) {
   const streamElement = document.getElementById('stream');
   Array.from(streamElement.children).forEach(child => child.remove());
 
@@ -226,23 +225,7 @@ function changeChannel(channel) {
   videoElement.play();
   videoElement.addEventListener('click', _ => history.back());
 
-  db.transaction('programme')
-    .objectStore('programme')
-    .index('channelId')
-    .getAll(channel.id)
-    .onsuccess = request => {
-      const currentTime = new Date();
-      const programmes = request.target.result;
-      for (const programme of programmes) {
-        if (
-          programme.start <= currentTime &&
-          programme.stop > currentTime
-        ) {
-          renderSelectedProgramme(channel.id, programme.id);
-          break;
-        }
-      }
-    };
+  renderSelectedProgramme(channel.id, (await programme).id);
 
   if (document.querySelector('[tabindex="0"]')?.closest('.channel')?.dataset.id !== channel.id) {
     const channelHeader = document.querySelector(`.channel[data-id="${channel.id}"] .channel-header`)

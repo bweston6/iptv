@@ -13,3 +13,21 @@ export const settings = new Settings({
   'm3u-url': localStorage.getItem('m3u-url'),
   'xmltv-url': localStorage.getItem('xmltv-url')
 });
+
+function checkSettings(settings) {
+  if (window.location.pathname == '/settings/index.html') {
+    // nothing to do already in settings
+    return;
+  }
+
+  if (!settings['m3u-url']) {
+    window.location.href = './settings/index.html';
+    return;
+  }
+
+  if (settings['xmltv-url']) {
+    document.querySelector('[aria-label="guide"]')?.classList.remove('hidden');
+  }
+}
+
+checkSettings(settings);
